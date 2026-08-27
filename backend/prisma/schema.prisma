@@ -289,6 +289,7 @@ model Tenant {
   routings              Routing[]
   masterProductionPlans MasterProductionSchedule[]
   mrpRuns               MRPRun[]
+  mrpPlannedOrders      MRPPlannedOrder[]
   workOrders            WorkOrder[]
   inspectionPlans       InspectionPlan[]
   qualityInspections    QualityInspection[]
