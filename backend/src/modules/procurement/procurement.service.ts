@@ -59,8 +59,8 @@ export class ProcurementService {
     }
 
     return [
-      { id: 'v_1', code: 'VEND-ALLOY-CORP', companyName: 'Global Special Steel & Alloy Foundries Ltd', contactName: 'Robert Vance, Chief Procurement Director', email: 'sales@alloyspecialsteel.com', paymentTerms: 'NET30', _count: { purchaseOrders: 2 } },
-      { id: 'v_2', code: 'VEND-HYDRAULIC-IND', companyName: 'Precision Hydraulic Castings & Valves GmbH', contactName: 'Hans Gruber, Regional Sales Lead', email: 'h.gruber@hydraulicvalves.de', paymentTerms: 'NET45', _count: { purchaseOrders: 1 } },
+      { id: 'v_1', code: 'VEND-ALLOY-CORP', companyName: 'Global Special Steel & Alloy Foundries Ltd', contactName: 'Robert Vance, Chief Procurement Director', email: 'vendor1@example.com', paymentTerms: 'NET30', _count: { purchaseOrders: 2 } },
+      { id: 'v_2', code: 'VEND-HYDRAULIC-IND', companyName: 'Precision Hydraulic Castings & Valves GmbH', contactName: 'Hans Gruber, Regional Sales Lead', email: 'vendor2@example.com', paymentTerms: 'NET45', _count: { purchaseOrders: 1 } },
     ];
   }
 

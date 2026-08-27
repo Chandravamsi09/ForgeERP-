@@ -3,13 +3,16 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Shield, Lock, Mail, Building, ArrowRight, CheckCircle2 } from 'lucide-react';
 
+const DEMO_ENV_PASSWORD = (import.meta as any).env?.VITE_DEMO_PASSWORD || 'Admin@123456';
+const DEMO_ENV_CODE = (import.meta as any).env?.VITE_DEMO_COMPANY_CODE || 'ELEVATEIQ';
+
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [companyCode, setCompanyCode] = useState('ELEVATEIQ');
-  const [email, setEmail] = useState('admin@elevateiq.com');
-  const [password, setPassword] = useState('Admin@123456');
+  const [companyCode, setCompanyCode] = useState(DEMO_ENV_CODE);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,9 +36,9 @@ export const Login: React.FC = () => {
     setLoading(true);
     try {
       await login({
-        companyCode: 'ELEVATEIQ',
+        companyCode: DEMO_ENV_CODE,
         email: roleEmail,
-        password: 'Admin@123456',
+        password: DEMO_ENV_PASSWORD,
       });
       navigate('/');
     } catch (err: any) {
@@ -103,7 +106,7 @@ export const Login: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="block w-full pl-9 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                  placeholder="admin@elevateiq.com"
+                  placeholder="admin@example.com"
                 />
               </div>
             </div>
@@ -145,7 +148,7 @@ export const Login: React.FC = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleQuickLogin('admin@elevateiq.com')}
+                onClick={() => handleQuickLogin('admin@example.com')}
                 className="p-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-sky-500/50 text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400 group-hover:text-sky-300">
@@ -156,7 +159,7 @@ export const Login: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => handleQuickLogin('plant.manager@elevateiq.com')}
+                onClick={() => handleQuickLogin('manager@example.com')}
                 className="p-2 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500/50 text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 group-hover:text-emerald-300">

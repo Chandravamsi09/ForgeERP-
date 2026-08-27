@@ -16,20 +16,23 @@ export class ReportsService {
         let lowStockCount = 0;
 
         for (const p of products) {
-          const available = p.stockLevels.reduce((sum, s) => sum + s.quantityAvailable, 0);
+          const item = p as any;
+          const cost = item.costPrice ?? item.standardCost ?? 50;
+          const minStock = item.minStockLevel ?? item.minStock ?? 10;
+          const available = item.stockLevels.reduce((sum: number, s: any) => sum + s.quantityAvailable, 0);
           totalStockUnits += available;
-          totalStockValuation += available * p.costPrice;
-          if (available <= p.minStockLevel) {
+          totalStockValuation += available * cost;
+          if (available <= minStock) {
             lowStockCount++;
           }
         }
 
         const pendingOrdersCount = await prisma.salesOrder.count({
-          where: { tenantId, status: SalesOrderStatus.PENDING },
+          where: { tenantId, status: SalesOrderStatus.PENDING as any },
         });
 
         const pendingPOCount = await prisma.purchaseOrder.count({
-          where: { tenantId, status: { in: [PurchaseOrderStatus.SUBMITTED, PurchaseOrderStatus.DRAFT] } },
+          where: { tenantId, status: { in: [PurchaseOrderStatus.SUBMITTED as any, PurchaseOrderStatus.DRAFT as any] } },
         });
 
         const employeeCount = await prisma.employee.count({ where: { tenantId } });
@@ -84,8 +87,10 @@ export class ReportsService {
       if (categories && categories.length > 0) {
         const categoryDistribution = categories.map((c) => {
           const value = c.products.reduce((sum, p) => {
-            const available = p.stockLevels.reduce((sSum, s) => sSum + s.quantityAvailable, 0);
-            return sum + available * p.costPrice;
+            const item = p as any;
+            const cost = item.costPrice ?? item.standardCost ?? 50;
+            const available = item.stockLevels.reduce((sSum: number, s: any) => sSum + s.quantityAvailable, 0);
+            return sum + available * cost;
           }, 0);
           return {
             name: c.name,

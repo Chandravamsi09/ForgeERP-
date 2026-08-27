@@ -78,8 +78,8 @@ export class SalesService {
     }
 
     return [
-      { id: 'c_1', code: 'CUST-AEROTECH', name: 'AeroTech Commercial Aircraft Systems Corp', email: 'purchasing@aerotechsystems.internal', creditLimit: 500000.0, billingAddress: '9000 Aviation Parkway, Seattle, WA 98101', _count: { salesOrders: 3, invoices: 2 } },
-      { id: 'c_2', code: 'CUST-TITAN-HEAVY', name: 'Titan Heavy Mining & Earthmoving Equipment Ltd', email: 'orders@titanheavyequipment.com', creditLimit: 750000.0, billingAddress: '450 Industrial Highway, Chicago, IL 60601', _count: { salesOrders: 2, invoices: 1 } },
+      { id: 'c_1', code: 'CUST-AEROTECH', name: 'AeroTech Commercial Aircraft Systems Corp', email: 'customer1@example.com', creditLimit: 500000.0, billingAddress: '9000 Aviation Parkway, Seattle, WA 98101', _count: { salesOrders: 3, invoices: 2 } },
+      { id: 'c_2', code: 'CUST-TITAN-HEAVY', name: 'Titan Heavy Mining & Earthmoving Equipment Ltd', email: 'customer2@example.com', creditLimit: 750000.0, billingAddress: '450 Industrial Highway, Chicago, IL 60601', _count: { salesOrders: 2, invoices: 1 } },
     ];
   }
 

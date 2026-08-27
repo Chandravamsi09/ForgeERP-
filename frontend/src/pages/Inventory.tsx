@@ -11,47 +11,9 @@ import {
   CheckCircle2,
   Layers
 } from 'lucide-react';
+import { IProduct, IWarehouse, ILowStockAlert } from '@forge-erp/shared';
 
-interface Product {
-  id: string;
-  sku: string;
-  name: string;
-  unitOfMeasure: string;
-  costPrice: number;
-  sellingPrice: number;
-  minStockLevel: number;
-  category: { id: string; name: string };
-  stockLevels: {
-    id: string;
-    warehouseId: string;
-    quantityOnHand: number;
-    quantityReserved: number;
-    quantityAvailable: number;
-    warehouse: { id: string; name: string; code: string };
-  }[];
-}
-
-interface Warehouse {
-  id: string;
-  code: string;
-  name: string;
-  location?: string;
-  isPrimary: boolean;
-}
-
-interface LowStockAlert {
-  productId: string;
-  sku: string;
-  name: string;
-  category: string;
-  minStockLevel: number;
-  totalOnHand: number;
-  totalAvailable: number;
-  isCritical: boolean;
-  deficit: number;
-}
-
-const DEFAULT_PRODUCTS: Product[] = [
+const DEFAULT_PRODUCTS: IProduct[] = [
   {
     id: 'prod_1',
     sku: 'RAW-4140-BAR',
@@ -106,12 +68,12 @@ const DEFAULT_PRODUCTS: Product[] = [
   }
 ];
 
-const DEFAULT_WAREHOUSES: Warehouse[] = [
+const DEFAULT_WAREHOUSES: IWarehouse[] = [
   { id: 'wh_1', code: 'WH-MAIN-PLANT', name: 'Main Plant Advanced Logistics Center', location: 'Building A, High-Tech Industrial Park', isPrimary: true },
   { id: 'wh_2', code: 'WH-ASSEMBLY-BAY', name: 'Final Assembly & QA Staging Hub', location: 'Bay 4, Cleanroom Facility', isPrimary: false }
 ];
 
-const DEFAULT_ALERTS: LowStockAlert[] = [
+const DEFAULT_ALERTS: ILowStockAlert[] = [
   {
     productId: 'prod_4',
     sku: 'RAW-VALVE-CAST',
@@ -127,9 +89,9 @@ const DEFAULT_ALERTS: LowStockAlert[] = [
 
 export const Inventory: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'products' | 'warehouses' | 'alerts'>('products');
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
-  const [warehouses, setWarehouses] = useState<Warehouse[]>(DEFAULT_WAREHOUSES);
-  const [alerts, setAlerts] = useState<LowStockAlert[]>(DEFAULT_ALERTS);
+  const [products, setProducts] = useState<IProduct[]>(DEFAULT_PRODUCTS);
+  const [warehouses, setWarehouses] = useState<IWarehouse[]>(DEFAULT_WAREHOUSES);
+  const [alerts, setAlerts] = useState<ILowStockAlert[]>(DEFAULT_ALERTS);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -180,7 +142,7 @@ export const Inventory: React.FC = () => {
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    const created: Product = {
+    const created: IProduct = {
       id: `prod_local_${Date.now()}`,
       sku: newProduct.sku.toUpperCase(),
       name: newProduct.name,
@@ -221,7 +183,7 @@ export const Inventory: React.FC = () => {
     const qty = Number(transferForm.quantity);
     setProducts((prev) =>
       prev.map((p) => {
-        if (p.sku === transferForm.productSku) {
+        if (p.sku === transferForm.productSku && p.stockLevels) {
           const updatedLevels = p.stockLevels.map((sl) => ({
             ...sl,
             quantityOnHand: Math.max(0, sl.quantityOnHand - qty),

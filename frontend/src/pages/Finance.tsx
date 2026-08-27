@@ -11,41 +11,9 @@ import {
   CheckCircle2,
   PieChart
 } from 'lucide-react';
-import { AccountType } from '@forge-erp/shared';
+import { IAccount, IExpense, IProfitLoss, IBalanceSheet, AccountType } from '@forge-erp/shared';
 
-interface Account {
-  id: string;
-  accountCode: string;
-  accountName: string;
-  accountType: AccountType;
-  balance: number;
-}
-
-interface Expense {
-  id: string;
-  expenseNumber: string;
-  category: string;
-  amount: number;
-  taxAmount: number;
-  expenseDate: string;
-  description?: string;
-}
-
-interface ProfitLoss {
-  revenue: { total: number };
-  expenses: { total: number };
-  netProfit: number;
-  isProfitable: boolean;
-}
-
-interface BalanceSheet {
-  assets: { total: number };
-  liabilities: { total: number };
-  equity: { total: number };
-  isBalanced: boolean;
-}
-
-const DEFAULT_ACCOUNTS: Account[] = [
+const DEFAULT_ACCOUNTS: IAccount[] = [
   { id: 'acc_1', accountCode: '1000', accountName: 'Operating Cash & Treasury Bank Account', accountType: AccountType.ASSET, balance: 284500.00 },
   { id: 'acc_2', accountCode: '1100', accountName: 'Accounts Receivable (Trade CRM)', accountType: AccountType.ASSET, balance: 146850.00 },
   { id: 'acc_3', accountCode: '1300', accountName: 'Raw Material Inventory Asset', accountType: AccountType.ASSET, balance: 23125.00 },
@@ -57,20 +25,20 @@ const DEFAULT_ACCOUNTS: Account[] = [
   { id: 'acc_9', accountCode: '5000', accountName: 'Cost of Goods Sold (Direct Materials)', accountType: AccountType.EXPENSE, balance: 6850.00 },
 ];
 
-const DEFAULT_EXPENSES: Expense[] = [
+const DEFAULT_EXPENSES: IExpense[] = [
   { id: 'exp_1', expenseNumber: 'EXP-2026-001', category: 'Utilities & Power', description: 'High-Voltage Shop Floor Power Grid', amount: 8400.00, taxAmount: 840.00, expenseDate: new Date().toISOString() },
   { id: 'exp_2', expenseNumber: 'EXP-2026-002', category: 'Equipment Maintenance', description: 'CNC 5-Axis Preventive Spindle Overhaul', amount: 4200.00, taxAmount: 420.00, expenseDate: new Date().toISOString() },
   { id: 'exp_3', expenseNumber: 'EXP-2026-003', category: 'Consumables', description: 'Carbide Cutting Inserts & Synthetic Coolant', amount: 2850.00, taxAmount: 285.00, expenseDate: new Date().toISOString() },
 ];
 
-const DEFAULT_PNL: ProfitLoss = {
+const DEFAULT_PNL: IProfitLoss = {
   revenue: { total: 284500.00 },
   expenses: { total: 15450.00 },
   netProfit: 269050.00,
   isProfitable: true,
 };
 
-const DEFAULT_BALANCE_SHEET: BalanceSheet = {
+const DEFAULT_BALANCE_SHEET: IBalanceSheet = {
   assets: { total: 814625.00 },
   liabilities: { total: 36850.00 },
   equity: { total: 777775.00 },
@@ -79,10 +47,10 @@ const DEFAULT_BALANCE_SHEET: BalanceSheet = {
 
 export const Finance: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'coa' | 'expenses' | 'pnl' | 'balancesheet'>('coa');
-  const [accounts, setAccounts] = useState<Account[]>(DEFAULT_ACCOUNTS);
-  const [expenses, setExpenses] = useState<Expense[]>(DEFAULT_EXPENSES);
-  const [pnl, setPnl] = useState<ProfitLoss>(DEFAULT_PNL);
-  const [balanceSheet, setBalanceSheet] = useState<BalanceSheet>(DEFAULT_BALANCE_SHEET);
+  const [accounts, setAccounts] = useState<IAccount[]>(DEFAULT_ACCOUNTS);
+  const [expenses, setExpenses] = useState<IExpense[]>(DEFAULT_EXPENSES);
+  const [pnl, setPnl] = useState<IProfitLoss>(DEFAULT_PNL);
+  const [balanceSheet, setBalanceSheet] = useState<IBalanceSheet>(DEFAULT_BALANCE_SHEET);
   const [loading, setLoading] = useState(false);
 
   // Modals
@@ -125,7 +93,7 @@ export const Finance: React.FC = () => {
 
   const handleCreateAccount = (e: React.FormEvent) => {
     e.preventDefault();
-    const created: Account = {
+    const created: IAccount = {
       id: `acc_local_${Date.now()}`,
       accountCode: accountForm.accountCode,
       accountName: accountForm.accountName,
@@ -141,7 +109,7 @@ export const Finance: React.FC = () => {
   const handleCreateExpense = (e: React.FormEvent) => {
     e.preventDefault();
     const amt = Number(expenseForm.amount);
-    const created: Expense = {
+    const created: IExpense = {
       id: `exp_local_${Date.now()}`,
       expenseNumber: `EXP-2026-${String(expenses.length + 1).padStart(3, '0')}`,
       category: expenseForm.category,

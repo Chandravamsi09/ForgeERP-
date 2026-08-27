@@ -11,46 +11,15 @@ import {
   UserCheck,
   Briefcase
 } from 'lucide-react';
-import { AttendanceStatus, PayrollStatus } from '@forge-erp/shared';
+import { IEmployee, IAttendance, IPayrollRun, AttendanceStatus, PayrollStatus } from '@forge-erp/shared';
 
-interface Employee {
-  id: string;
-  employeeCode: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  department: string;
-  designation: string;
-  joiningDate: string;
-  baseSalary: number;
-}
-
-interface Attendance {
-  id: string;
-  employee: { firstName: string; lastName: string };
-  date: string;
-  status: AttendanceStatus;
-  checkIn?: string;
-  checkOut?: string;
-}
-
-interface PayrollRun {
-  id: string;
-  payrollPeriod: string;
-  payDate: string;
-  status: PayrollStatus;
-  totalGross: number;
-  totalDeductions: number;
-  totalNet: number;
-}
-
-const DEFAULT_EMPLOYEES: Employee[] = [
+const DEFAULT_EMPLOYEES: IEmployee[] = [
   {
     id: 'emp_1',
     employeeCode: 'EMP-1001',
     firstName: 'David',
     lastName: 'Vance',
-    email: 'd.vance@elevateiq.internal',
+    email: 'david.vance@example.com',
     department: 'Quality Assurance & Regulatory Compliance',
     designation: 'Lead Quality & ISO Auditor',
     joiningDate: '2023-01-15',
@@ -61,7 +30,7 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     employeeCode: 'EMP-1002',
     firstName: 'Marcus',
     lastName: 'Reeves',
-    email: 'm.reeves@elevateiq.internal',
+    email: 'marcus.reeves@example.com',
     department: 'Precision Engineering & Shop Floor',
     designation: 'Senior CNC Operations Specialist',
     joiningDate: '2022-08-01',
@@ -72,7 +41,7 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     employeeCode: 'EMP-1003',
     firstName: 'Elena',
     lastName: 'Rostova',
-    email: 'e.rostova@elevateiq.internal',
+    email: 'elena.rostova@example.com',
     department: 'Supply Chain & Sourcing',
     designation: 'Procurement Strategy Director',
     joiningDate: '2021-11-10',
@@ -80,13 +49,13 @@ const DEFAULT_EMPLOYEES: Employee[] = [
   },
 ];
 
-const DEFAULT_ATTENDANCE: Attendance[] = [
+const DEFAULT_ATTENDANCE: IAttendance[] = [
   { id: 'att_1', date: new Date().toISOString(), status: AttendanceStatus.PRESENT, checkIn: '08:55 AM', checkOut: '05:30 PM', employee: { firstName: 'David', lastName: 'Vance' } },
   { id: 'att_2', date: new Date().toISOString(), status: AttendanceStatus.PRESENT, checkIn: '08:48 AM', checkOut: '05:35 PM', employee: { firstName: 'Marcus', lastName: 'Reeves' } },
   { id: 'att_3', date: new Date().toISOString(), status: AttendanceStatus.PRESENT, checkIn: '09:02 AM', checkOut: '05:45 PM', employee: { firstName: 'Elena', lastName: 'Rostova' } },
 ];
 
-const DEFAULT_PAYROLL_RUNS: PayrollRun[] = [
+const DEFAULT_PAYROLL_RUNS: IPayrollRun[] = [
   {
     id: 'pr_1',
     payrollPeriod: '2026-08 (August)',
@@ -109,9 +78,9 @@ const DEFAULT_PAYROLL_RUNS: PayrollRun[] = [
 
 export const Hr: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'employees' | 'attendance' | 'payroll'>('employees');
-  const [employees, setEmployees] = useState<Employee[]>(DEFAULT_EMPLOYEES);
-  const [attendances, setAttendances] = useState<Attendance[]>(DEFAULT_ATTENDANCE);
-  const [payrollRuns, setPayrollRuns] = useState<PayrollRun[]>(DEFAULT_PAYROLL_RUNS);
+  const [employees, setEmployees] = useState<IEmployee[]>(DEFAULT_EMPLOYEES);
+  const [attendances, setAttendances] = useState<IAttendance[]>(DEFAULT_ATTENDANCE);
+  const [payrollRuns, setPayrollRuns] = useState<IPayrollRun[]>(DEFAULT_PAYROLL_RUNS);
   const [loading, setLoading] = useState(false);
 
   // Modals
@@ -154,7 +123,7 @@ export const Hr: React.FC = () => {
 
   const handleCreateEmployee = (e: React.FormEvent) => {
     e.preventDefault();
-    const created: Employee = {
+    const created: IEmployee = {
       id: `emp_local_${Date.now()}`,
       employeeCode: employeeForm.employeeCode.toUpperCase(),
       firstName: employeeForm.firstName,
@@ -177,7 +146,7 @@ export const Hr: React.FC = () => {
     const deductions = gross * 0.20;
     const net = gross - deductions;
 
-    const created: PayrollRun = {
+    const created: IPayrollRun = {
       id: `pr_local_${Date.now()}`,
       payrollPeriod: payrollForm.payrollPeriod,
       payDate: payrollForm.payDate,
@@ -423,7 +392,7 @@ export const Hr: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="j.miller@elevateiq.internal"
+                  placeholder="employee@example.com"
                   value={employeeForm.email}
                   onChange={(e) => setEmployeeForm({ ...employeeForm, email: e.target.value })}
                   className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200"

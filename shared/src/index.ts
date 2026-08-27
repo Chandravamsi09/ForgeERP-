@@ -118,3 +118,172 @@ export interface JwtPayload {
   email: string;
   roles: UserRole[];
 }
+
+// Canonical Shared Enterprise Entity Interfaces
+
+export interface IProduct {
+  id: string;
+  sku: string;
+  name: string;
+  unitOfMeasure: string;
+  costPrice: number;
+  sellingPrice: number;
+  minStockLevel: number;
+  category?: { id: string; name: string };
+  stockLevels?: IStockLevel[];
+}
+
+export interface IStockLevel {
+  id: string;
+  warehouseId: string;
+  quantityOnHand: number;
+  quantityReserved: number;
+  quantityAvailable: number;
+  warehouse?: { id: string; name: string; code: string };
+}
+
+export interface IWarehouse {
+  id: string;
+  code: string;
+  name: string;
+  location?: string;
+  isPrimary: boolean;
+}
+
+export interface ILowStockAlert {
+  productId: string;
+  sku: string;
+  name: string;
+  category: string;
+  minStockLevel: number;
+  totalOnHand: number;
+  totalAvailable: number;
+  isCritical: boolean;
+  deficit: number;
+}
+
+export interface IVendor {
+  id: string;
+  code: string;
+  companyName: string;
+  contactName?: string;
+  email: string;
+  phone?: string;
+  paymentTerms: string;
+  _count?: { purchaseOrders: number };
+}
+
+export interface IPurchaseOrderItem {
+  id: string;
+  product: { name: string; sku: string };
+  quantityOrdered: number;
+  quantityReceived: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface IPurchaseOrder {
+  id: string;
+  poNumber: string;
+  vendor: { companyName: string };
+  status: PurchaseOrderStatus;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  createdAt: string;
+  items?: IPurchaseOrderItem[];
+}
+
+export interface ICustomer {
+  id: string;
+  code: string;
+  name: string;
+  email: string;
+  phone?: string;
+  creditLimit: number;
+}
+
+export interface ISalesOrderItem {
+  id: string;
+  product: { name: string };
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface ISalesOrder {
+  id: string;
+  orderNumber: string;
+  customer: { name: string };
+  status: SalesOrderStatus;
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  createdAt: string;
+  items?: ISalesOrderItem[];
+}
+
+export interface IAccount {
+  id: string;
+  accountCode: string;
+  accountName: string;
+  accountType: AccountType;
+  balance: number;
+}
+
+export interface IExpense {
+  id: string;
+  expenseNumber: string;
+  category: string;
+  amount: number;
+  taxAmount: number;
+  expenseDate: string;
+  description?: string;
+}
+
+export interface IProfitLoss {
+  revenue: { total: number };
+  expenses: { total: number };
+  netProfit: number;
+  isProfitable: boolean;
+}
+
+export interface IBalanceSheet {
+  assets: { total: number };
+  liabilities: { total: number };
+  equity: { total: number };
+  isBalanced: boolean;
+}
+
+export interface IEmployee {
+  id: string;
+  employeeCode: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  department: string;
+  designation: string;
+  joiningDate: string;
+  baseSalary: number;
+  _count?: { attendances: number; payslips: number };
+}
+
+export interface IAttendance {
+  id: string;
+  employee: { firstName: string; lastName: string };
+  date: string;
+  status: AttendanceStatus;
+  checkIn?: string;
+  checkOut?: string;
+}
+
+export interface IPayrollRun {
+  id: string;
+  payrollPeriod: string;
+  payDate: string;
+  status: PayrollStatus;
+  totalGross: number;
+  totalDeductions: number;
+  totalNet: number;
+  payslips?: any[];
+}

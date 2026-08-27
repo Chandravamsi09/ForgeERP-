@@ -11,41 +11,14 @@ import {
   ArrowRight,
   DollarSign
 } from 'lucide-react';
-import { SalesOrderStatus, InvoiceStatus } from '@forge-erp/shared';
+import { ICustomer, ISalesOrder, SalesOrderStatus } from '@forge-erp/shared';
 
-interface Customer {
-  id: string;
-  code: string;
-  name: string;
-  email: string;
-  phone?: string;
-  creditLimit: number;
-}
-
-interface SalesOrder {
-  id: string;
-  orderNumber: string;
-  customer: { name: string };
-  status: SalesOrderStatus;
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
-  createdAt: string;
-  items: {
-    id: string;
-    product: { name: string };
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-  }[];
-}
-
-const DEFAULT_CUSTOMERS: Customer[] = [
-  { id: 'c_1', code: 'CUST-AEROTECH', name: 'AeroTech Commercial Aircraft Systems Corp', email: 'purchasing@aerotechsystems.internal', creditLimit: 500000.0 },
-  { id: 'c_2', code: 'CUST-TITAN-HEAVY', name: 'Titan Heavy Mining & Earthmoving Equipment Ltd', email: 'orders@titanheavyequipment.com', creditLimit: 750000.0 },
+const DEFAULT_CUSTOMERS: ICustomer[] = [
+  { id: 'c_1', code: 'CUST-AEROTECH', name: 'AeroTech Commercial Aircraft Systems Corp', email: 'customer1@example.com', phone: '+1-555-0103', creditLimit: 500000.0 },
+  { id: 'c_2', code: 'CUST-TITAN-HEAVY', name: 'Titan Heavy Mining & Earthmoving Equipment Ltd', email: 'customer2@example.com', phone: '+1-555-0104', creditLimit: 750000.0 },
 ];
 
-const DEFAULT_ORDERS: SalesOrder[] = [
+const DEFAULT_ORDERS: ISalesOrder[] = [
   {
     id: 'so_1',
     orderNumber: 'SO-2026-001',
@@ -72,8 +45,8 @@ const DEFAULT_ORDERS: SalesOrder[] = [
 
 export const Sales: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'orders' | 'customers'>('orders');
-  const [orders, setOrders] = useState<SalesOrder[]>(DEFAULT_ORDERS);
-  const [customers, setCustomers] = useState<Customer[]>(DEFAULT_CUSTOMERS);
+  const [orders, setOrders] = useState<ISalesOrder[]>(DEFAULT_ORDERS);
+  const [customers, setCustomers] = useState<ICustomer[]>(DEFAULT_CUSTOMERS);
   const [loading, setLoading] = useState(false);
 
   // Modals
@@ -113,7 +86,7 @@ export const Sales: React.FC = () => {
 
   const handleCreateCustomer = (e: React.FormEvent) => {
     e.preventDefault();
-    const created: Customer = {
+    const created: ICustomer = {
       id: `c_local_${Date.now()}`,
       code: customerForm.code.toUpperCase(),
       name: customerForm.name,
@@ -134,7 +107,7 @@ export const Sales: React.FC = () => {
     const tax = sub * 0.1;
     const total = sub + tax;
 
-    const created: SalesOrder = {
+    const created: ISalesOrder = {
       id: `so_local_${Date.now()}`,
       orderNumber: `SO-2026-${String(orders.length + 1).padStart(3, '0')}`,
       customer: { name: orderForm.customerName },
@@ -260,6 +233,7 @@ export const Sales: React.FC = () => {
               </div>
               <div className="text-xs text-slate-400 space-y-1 pt-2 border-t border-slate-800">
                 <p>Email: {c.email}</p>
+                {c.phone && <p>Phone: {c.phone}</p>}
               </div>
             </div>
           ))}
@@ -385,7 +359,7 @@ export const Sales: React.FC = () => {
                   <input
                     type="email"
                     required
-                    placeholder="orders@customer.com"
+                    placeholder="customer@example.com"
                     value={customerForm.email}
                     onChange={(e) => setCustomerForm({ ...customerForm, email: e.target.value })}
                     className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200"

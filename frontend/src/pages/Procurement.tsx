@@ -11,43 +11,14 @@ import {
   ChevronRight,
   Truck
 } from 'lucide-react';
-import { PurchaseOrderStatus } from '@forge-erp/shared';
+import { IVendor, IPurchaseOrder, PurchaseOrderStatus } from '@forge-erp/shared';
 
-interface Vendor {
-  id: string;
-  code: string;
-  companyName: string;
-  contactName?: string;
-  email: string;
-  phone?: string;
-  paymentTerms: string;
-}
-
-interface PurchaseOrder {
-  id: string;
-  poNumber: string;
-  vendor: { companyName: string };
-  status: PurchaseOrderStatus;
-  subtotal: number;
-  taxAmount: number;
-  totalAmount: number;
-  createdAt: string;
-  items: {
-    id: string;
-    product: { name: string; sku: string };
-    quantityOrdered: number;
-    quantityReceived: number;
-    unitPrice: number;
-    totalPrice: number;
-  }[];
-}
-
-const DEFAULT_VENDORS: Vendor[] = [
-  { id: 'v_1', code: 'VEND-ALLOY-CORP', companyName: 'Global Special Steel & Alloy Foundries Ltd', contactName: 'Robert Vance, Chief Procurement Director', email: 'sales@alloyspecialsteel.com', paymentTerms: 'NET30' },
-  { id: 'v_2', code: 'VEND-HYDRAULIC-IND', companyName: 'Precision Hydraulic Castings & Valves GmbH', contactName: 'Hans Gruber, Regional Sales Lead', email: 'h.gruber@hydraulicvalves.de', paymentTerms: 'NET45' },
+const DEFAULT_VENDORS: IVendor[] = [
+  { id: 'v_1', code: 'VEND-ALLOY-CORP', companyName: 'Global Special Steel & Alloy Foundries Ltd', contactName: 'Robert Vance, Chief Procurement Director', email: 'vendor1@example.com', phone: '+1-555-0101', paymentTerms: 'NET30' },
+  { id: 'v_2', code: 'VEND-HYDRAULIC-IND', companyName: 'Precision Hydraulic Castings & Valves GmbH', contactName: 'Hans Gruber, Regional Sales Lead', email: 'vendor2@example.com', phone: '+1-555-0102', paymentTerms: 'NET45' },
 ];
 
-const DEFAULT_POS: PurchaseOrder[] = [
+const DEFAULT_POS: IPurchaseOrder[] = [
   {
     id: 'po_1',
     poNumber: 'PO-2026-001',
@@ -74,8 +45,8 @@ const DEFAULT_POS: PurchaseOrder[] = [
 
 export const Procurement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'orders' | 'vendors'>('orders');
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(DEFAULT_POS);
-  const [vendors, setVendors] = useState<Vendor[]>(DEFAULT_VENDORS);
+  const [purchaseOrders, setPurchaseOrders] = useState<IPurchaseOrder[]>(DEFAULT_POS);
+  const [vendors, setVendors] = useState<IVendor[]>(DEFAULT_VENDORS);
   const [loading, setLoading] = useState(false);
 
   // Modals
@@ -119,7 +90,7 @@ export const Procurement: React.FC = () => {
 
   const handleCreateVendor = (e: React.FormEvent) => {
     e.preventDefault();
-    const created: Vendor = {
+    const created: IVendor = {
       id: `v_local_${Date.now()}`,
       code: vendorForm.code.toUpperCase(),
       companyName: vendorForm.companyName,
@@ -142,7 +113,7 @@ export const Procurement: React.FC = () => {
     const tax = sub * 0.1;
     const total = sub + tax;
 
-    const created: PurchaseOrder = {
+    const created: IPurchaseOrder = {
       id: `po_local_${Date.now()}`,
       poNumber: `PO-2026-${String(purchaseOrders.length + 1).padStart(3, '0')}`,
       vendor: { companyName: poForm.vendorName },
@@ -458,7 +429,7 @@ export const Procurement: React.FC = () => {
                   <input
                     type="email"
                     required
-                    placeholder="sales@supplier.com"
+                    placeholder="vendor@example.com"
                     value={vendorForm.email}
                     onChange={(e) => setVendorForm({ ...vendorForm, email: e.target.value })}
                     className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200"
