@@ -1,0 +1,29 @@
+{
+  "name": "forge-erp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Resource Planning System for Manufacturing Enterprises",
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "start:backend": "npm run start --workspace=backend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "test": "npm run test --workspaces --if-present",
+    "test:backend": "npm run test --workspace=backend",
+    "test:frontend": "npm run test --workspace=frontend",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  }
+}
