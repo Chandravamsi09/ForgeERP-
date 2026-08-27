@@ -2,48 +2,57 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { DashboardLayout } from './layouts/DashboardLayout';
+
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
-import { DashboardLayout } from './layouts/DashboardLayout';
 import { DashboardHome } from './pages/DashboardHome';
 import { Inventory } from './pages/Inventory';
 import { Procurement } from './pages/Procurement';
 import { Sales } from './pages/Sales';
 import { Finance } from './pages/Finance';
 import { Hr } from './pages/Hr';
-import { UserRole } from '@forge-erp/shared';
+import { Manufacturing } from './pages/Manufacturing';
+import { QualityManagement } from './pages/QualityManagement';
+import { WmsGenealogy } from './pages/WmsGenealogy';
+import { ConsolidationDashboard } from './pages/ConsolidationDashboard';
 
-export default function App() {
+export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
 
-          {/* Protected Application Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/" element={<DashboardHome />} />
-              <Route path="/inventory" element={<Inventory />} />
-              <Route path="/procurement" element={<Procurement />} />
-              <Route path="/sales" element={<Sales />} />
-              
-              <Route element={<ProtectedRoute roles={[UserRole.ADMIN, UserRole.ACCOUNTANT, UserRole.MANAGER]} />}>
-                <Route path="/finance" element={<Finance />} />
-              </Route>
-
-              <Route element={<ProtectedRoute roles={[UserRole.ADMIN, UserRole.MANAGER]} />}>
-                <Route path="/hr" element={<Hr />} />
-              </Route>
-            </Route>
+          {/* Protected Monorepo ERP Workspace */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DashboardHome />} />
+            <Route path="manufacturing" element={<Manufacturing />} />
+            <Route path="quality" element={<QualityManagement />} />
+            <Route path="wms" element={<WmsGenealogy />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="procurement" element={<Procurement />} />
+            <Route path="sales" element={<Sales />} />
+            <Route path="finance" element={<Finance />} />
+            <Route path="consolidation" element={<ConsolidationDashboard />} />
+            <Route path="hr" element={<Hr />} />
           </Route>
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   );
-}
+};
+
+export default App;

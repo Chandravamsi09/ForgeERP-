@@ -1,115 +1,102 @@
 import React from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   Boxes,
+  Truck,
   ShoppingCart,
   Receipt,
-  DollarSign,
   Users,
   LogOut,
-  Building2,
-  Menu,
-  X
+  Shield,
+  Activity,
+  ShieldCheck,
+  Database,
+  Globe,
 } from 'lucide-react';
-import { UserRole } from '@forge-erp/shared';
 
 export const DashboardLayout: React.FC = () => {
-  const { user, tenant, logout, hasRole } = useAuth();
-  const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-  const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, visible: true },
-    { name: 'Inventory', href: '/inventory', icon: Boxes, visible: true },
-    { name: 'Procurement', href: '/procurement', icon: ShoppingCart, visible: true },
-    { name: 'Sales Orders', href: '/sales', icon: Receipt, visible: true },
-    { name: 'Finance & Accounting', href: '/finance', icon: DollarSign, visible: hasRole(UserRole.ADMIN) || hasRole(UserRole.ACCOUNTANT) || hasRole(UserRole.MANAGER) },
-    { name: 'HR & Payroll', href: '/hr', icon: Users, visible: hasRole(UserRole.ADMIN) || hasRole(UserRole.MANAGER) },
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const navItems = [
+    { label: 'Executive Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Manufacturing & OEE', path: '/manufacturing', icon: Activity },
+    { label: 'Quality & NCR', path: '/quality', icon: ShieldCheck },
+    { label: 'WMS & Lot Genealogy', path: '/wms', icon: Database },
+    { label: 'Inventory & Warehouses', path: '/inventory', icon: Boxes },
+    { label: 'Procurement & 3-Way Match', path: '/procurement', icon: Truck },
+    { label: 'Sales & Order-to-Cash', path: '/sales', icon: ShoppingCart },
+    { label: 'Finance & Accounting', path: '/finance', icon: Receipt },
+    { label: 'Consolidation & CTA', path: '/consolidation', icon: Globe },
+    { label: 'HR & Advanced Payroll', path: '/hr', icon: Users },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col md:flex-row">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
-        <div className="flex items-center gap-2">
-          <Building2 className="w-6 h-6 text-sky-400" />
-          <span className="font-bold text-lg text-white">ForgeERP</span>
-        </div>
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg bg-slate-800 text-slate-300"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-
+    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
       {/* Sidebar */}
-      <aside
-        className={`${
-          sidebarOpen ? 'block' : 'hidden'
-        } md:block md:w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 min-h-screen`}
-      >
+      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
         <div>
-          {/* Tenant Logo / Brand Header */}
-          <div className="p-6 border-b border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 font-bold">
-              {tenant?.code?.substring(0, 2) || 'FE'}
+          {/* Logo */}
+          <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+            <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-sky-500/20">
+              F
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-white truncate max-w-[140px]">
-                {tenant?.name || 'ForgeERP'}
-              </h2>
-              <p className="text-xs text-sky-400 font-mono">{tenant?.code || 'TENANT'}</p>
+              <span className="font-bold text-base tracking-tight text-white block">ForgeERP</span>
+              <span className="text-[10px] text-sky-400 font-mono tracking-widest block uppercase font-bold">Tier-1 Enterprise</span>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5">
-            {navigation
-              .filter((item) => item.visible)
-              .map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-sky-600/20 text-sky-400 border border-sky-500/30'
-                        : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {item.name}
-                  </Link>
-                );
-              })}
+          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                end={item.path === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    isActive
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`
+                }
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                {item.label}
+              </NavLink>
+            ))}
           </nav>
         </div>
 
-        {/* User Card & Logout */}
-        <div className="p-4 border-t border-slate-800">
+        {/* User Info & Logout */}
+        <div className="p-4 border-t border-slate-800 bg-slate-900/60">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-slate-300">
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
+            <div className="flex items-center gap-2 overflow-hidden">
+              <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-sky-400">
+                {user?.firstName?.[0] || 'U'}
               </div>
-              <div className="text-xs">
-                <p className="font-semibold text-slate-200">
+              <div className="overflow-hidden">
+                <p className="text-xs font-semibold text-slate-200 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-slate-500">{user?.roles?.join(', ')}</p>
+                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-mono uppercase font-bold truncate">
+                  <Shield className="w-2.5 h-2.5 text-sky-400" />
+                  {user?.roles?.[0] || 'USER'}
+                </p>
               </div>
             </div>
             <button
-              onClick={logout}
-              title="Sign Out"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+              onClick={handleLogout}
+              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-md transition-colors"
+              title="Logout"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -118,8 +105,10 @@ export const DashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-6 md:p-8 overflow-y-auto min-h-screen">
-        <Outlet />
+      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-950">
+        <div className="p-8 max-w-7xl mx-auto w-full">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

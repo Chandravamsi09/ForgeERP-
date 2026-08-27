@@ -4,6 +4,9 @@ export * from './engines/oeeEngine';
 export * from './engines/inventoryValuationEngine';
 export * from './engines/threeWayMatchEngine';
 export * from './engines/intercompanyEliminationEngine';
+export * from './engines/fixedAssetEngine';
+export * from './engines/revenueRecognitionEngine';
+export * from './engines/globalTradeEngine';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
