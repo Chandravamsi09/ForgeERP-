@@ -6,6 +6,7 @@ import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { Inventory } from './pages/Inventory';
+import { Procurement } from './pages/Procurement';
 import { UserRole } from '@forge-erp/shared';
 
 // Module placeholder components until their respective milestones
@@ -52,7 +53,7 @@ export default function App() {
             <Route element={<DashboardLayout />}>
               <Route path="/" element={<DashboardHome />} />
               <Route path="/inventory" element={<Inventory />} />
-              <Route path="/procurement" element={<div className="text-slate-300">Procurement Module</div>} />
+              <Route path="/procurement" element={<Procurement />} />
               <Route path="/sales" element={<div className="text-slate-300">Sales Order Module</div>} />
               
               <Route element={<ProtectedRoute roles={[UserRole.ADMIN, UserRole.ACCOUNTANT, UserRole.MANAGER]} />}>

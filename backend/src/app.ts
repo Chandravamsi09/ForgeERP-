@@ -4,6 +4,7 @@ import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import inventoryRoutes from './modules/inventory/inventory.routes';
+import procurementRoutes from './modules/procurement/procurement.routes';
 
 export const createApp = () => {
   const app = express();
@@ -27,6 +28,7 @@ export const createApp = () => {
   // Module Routes
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/inventory', inventoryRoutes);
+  app.use('/api/v1/procurement', procurementRoutes);
 
   // Global Error Handler
   app.use(errorHandler);
