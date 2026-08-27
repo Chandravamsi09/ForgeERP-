@@ -5,42 +5,13 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { DashboardLayout } from './layouts/DashboardLayout';
+import { DashboardHome } from './pages/DashboardHome';
 import { Inventory } from './pages/Inventory';
 import { Procurement } from './pages/Procurement';
 import { Sales } from './pages/Sales';
 import { Finance } from './pages/Finance';
 import { Hr } from './pages/Hr';
 import { UserRole } from '@forge-erp/shared';
-
-// Module placeholder components until their respective milestones
-const DashboardHome = () => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Manufacturing Overview</h1>
-        <p className="text-sm text-slate-400">Welcome to ForgeERP System</p>
-      </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <p className="text-xs text-slate-400 uppercase font-semibold">Total Stock Items</p>
-        <p className="text-2xl font-bold text-sky-400 mt-2">1,248 Units</p>
-      </div>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <p className="text-xs text-slate-400 uppercase font-semibold">Pending POs</p>
-        <p className="text-2xl font-bold text-amber-400 mt-2">14 Orders</p>
-      </div>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <p className="text-xs text-slate-400 uppercase font-semibold">Monthly Sales</p>
-        <p className="text-2xl font-bold text-emerald-400 mt-2">$284,500</p>
-      </div>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-        <p className="text-xs text-slate-400 uppercase font-semibold">Active Employees</p>
-        <p className="text-2xl font-bold text-purple-400 mt-2">42 Staff</p>
-      </div>
-    </div>
-  </div>
-);
 
 export default function App() {
   return (
