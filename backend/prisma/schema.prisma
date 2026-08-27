@@ -1,77 +1,400 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
 }
 
-// ----------------------------------------------------
-// Core & Multi-Tenancy / Auth
-// ----------------------------------------------------
+// ============================================================================
+// ENUMS (Enterprise Global ERP Domain Enums)
+// ============================================================================
+
+enum UserRoleName {
+  SUPER_ADMIN
+  ADMIN
+  PLANT_MANAGER
+  PRODUCTION_SUPERVISOR
+  INVENTORY_MANAGER
+  QUALITY_ENGINEER
+  PURCHASE_MANAGER
+  SALES_EXECUTIVE
+  FINANCE_CONTROLLER
+  MAINTENANCE_ENGINEER
+  HR_PAYROLL_MANAGER
+  OPERATOR
+}
+
+enum UserAccountStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
+  PENDING_VERIFICATION
+}
+
+enum AuditActionType {
+  INSERT
+  UPDATE
+  SOFT_DELETE
+  HARD_DELETE
+  STATE_TRANSITION
+  SECURITY_OVERRIDE
+}
+
+enum ProductType {
+  RAW_MATERIAL
+  WORK_IN_PROGRESS
+  FINISHED_GOOD
+  SPARE_PART
+  PACKAGING_MATERIAL
+  CONSUMABLE
+}
+
+enum ValuationMethod {
+  FIFO
+  MOVING_WEIGHTED_AVERAGE
+  STANDARD_COSTING
+}
+
+enum WorkCenterStatus {
+  OPERATIONAL
+  IN_MAINTENANCE
+  OFFLINE
+  DECOMMISSIONED
+}
+
+enum BOMStatus {
+  DRAFT
+  ACTIVE
+  REVISED
+  OBSOLETE
+}
+
+enum WorkOrderStatus {
+  DRAFT
+  RELEASED
+  IN_PROGRESS
+  QUALITY_HOLD
+  COMPLETED
+  CLOSED
+  CANCELLED
+}
+
+enum InspectionStage {
+  INWARD_GOODS_RECEIPT
+  IN_PROCESS_ROUTING
+  PRE_DISPATCH_FINISHED_GOODS
+  CALIBRATION_CHECK
+}
+
+enum InspectionStatus {
+  PENDING
+  IN_TESTING
+  PASS
+  FAIL
+  CONDITIONAL_PASS
+  WAIVED
+}
+
+enum NCRSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum NCRDisposition {
+  SCRAP
+  REWORK
+  RETURN_TO_VENDOR
+  USE_AS_IS
+  DOWNGRADE
+}
+
+enum LotStatus {
+  QUARANTINE
+  RELEASED
+  REJECTED
+  EXPIRED
+  HOLD
+}
+
+enum SerialStatus {
+  AVAILABLE
+  ISSUED_TO_PRODUCTION
+  IN_TRANSIT
+  SHIPPED_TO_CUSTOMER
+  DEFECTIVE
+  SCRAPPED
+}
+
+enum StockMovementType {
+  GRN_RECEIPT
+  PRODUCTION_ISSUE
+  PRODUCTION_RECEIPT
+  DISPATCH_DELIVERY
+  WAREHOUSE_TRANSFER_OUT
+  WAREHOUSE_TRANSFER_IN
+  PHYSICAL_ADJUSTMENT
+  SCRAP_WRITEOFF
+  RETURN_INWARD
+  RETURN_OUTWARD
+}
+
+enum TransferStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+enum RequisitionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  CONVERTED_TO_PO
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PARTIALLY_FULFILLED
+  FULFILLED
+  REJECTED
+  CANCELLED
+}
+
+enum ThreeWayMatchStatus {
+  PENDING_MATCH
+  MATCHED_EXACT
+  PRICE_TOLERANCE_APPROVED
+  QUANTITY_TOLERANCE_APPROVED
+  PRICE_DISCREPANCY_FLAGGED
+  QUANTITY_DISCREPANCY_FLAGGED
+  MANUAL_OVERRIDE_APPROVED
+}
+
+enum QuotationStatus {
+  DRAFT
+  ISSUED
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED_TO_ORDER
+}
+
+enum SalesOrderStatus {
+  DRAFT
+  PENDING_CONFIRMATION
+  CONFIRMED
+  PROCESSING
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+  ON_CREDIT_HOLD
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  DISPUTED
+  VOID
+}
+
+enum AccountClassification {
+  CURRENT_ASSET
+  FIXED_ASSET
+  OTHER_ASSET
+  CURRENT_LIABILITY
+  LONG_TERM_LIABILITY
+  EQUITY
+  OPERATING_REVENUE
+  OTHER_INCOME
+  COST_OF_GOODS_SOLD
+  OPERATING_EXPENSE
+  TAX_EXPENSE
+}
+
+enum JournalEntryStatus {
+  DRAFT
+  POSTED
+  VOID
+}
+
+enum AssetMaintenanceStatus {
+  OPERATIONAL
+  PREVENTIVE_DUE
+  UNDER_REPAIR
+  STANDBY
+  SCRAPPED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  ON_LEAVE
+  HALF_DAY
+  HOLIDAY
+  OVERTIME
+}
+
+enum PayrollStatus {
+  DRAFT
+  CALCULATED
+  APPROVED
+  DISBURSED
+  LOCKED
+}
+
+// ============================================================================
+// 1. ENTERPRISE FOUNDATION, TENANT ISOLATION & AUDIT LOGS (SOX/ISO-9001)
+// ============================================================================
 
 model Tenant {
-  id        String   @id @default(uuid())
-  name      String
-  code      String   @unique
-  logoUrl   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String   @id @default(uuid())
+  code            String   @unique
+  legalName       String
+  tradeName       String?
+  taxIdentifier   String?
+  currencyCode    String   @default("USD")
+  fiscalYearStart Int      @default(1) // Month 1-12
+  isMultiCurrency Boolean  @default(false)
+  logoUrl         String?
+  streetAddress   String?
+  city            String?
+  stateProvince   String?
+  postalCode      String?
+  country         String   @default("US")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  users          User[]
-  roles          Role[]
-  auditLogs      AuditLog[]
-  categories     Category[]
-  products       Product[]
-  warehouses     Warehouse[]
-  stockLevels    StockLevel[]
-  stockTransfers StockTransfer[]
-  vendors        Vendor[]
-  purchaseOrders PurchaseOrder[]
-  goodsReceived  GoodsReceivedNote[]
-  customers      Customer[]
-  quotations     Quotation[]
-  salesOrders    SalesOrder[]
-  invoices       Invoice[]
-  payments       Payment[]
-  accounts       Account[]
-  journalEntries JournalEntry[]
-  expenses       Expense[]
-  employees      Employee[]
-  attendances    Attendance[]
-  payrollRuns    PayrollRun[]
+  users                 User[]
+  roles                 Role[]
+  permissions           Permission[]
+  auditLogs             AuditLog[]
+  systemConfigs         SystemConfig[]
+  categories            Category[]
+  uoms                  UnitOfMeasure[]
+  products              Product[]
+  workCenters           WorkCenter[]
+  boms                  BillOfMaterials[]
+  routings              Routing[]
+  masterProductionPlans MasterProductionSchedule[]
+  mrpRuns               MRPRun[]
+  workOrders            WorkOrder[]
+  inspectionPlans       InspectionPlan[]
+  qualityInspections    QualityInspection[]
+  ncrs                  NonConformanceReport[]
+  coas                  CertificateOfAnalysis[]
+  warehouses            Warehouse[]
+  warehouseBins         WarehouseBin[]
+  batchLots             BatchLot[]
+  serialMasters         SerialMaster[]
+  stockLevels           StockLevel[]
+  binStockLevels        BinStockLevel[]
+  stockTransfers        StockTransfer[]
+  inventoryLedgers      InventoryLedger[]
+  genealogyLinks        GenealogyLink[]
+  vendors               Vendor[]
+  purchaseRequisitions  PurchaseRequisition[]
+  rfqs                  RequestForQuotation[]
+  purchaseOrders        PurchaseOrder[]
+  goodsReceivedNotes    GoodsReceivedNote[]
+  vendorInvoices        VendorInvoice[]
+  threeWayMatches       ThreeWayMatchLog[]
+  customers             Customer[]
+  priceTierMatrices     PriceTierMatrix[]
+  quotations            Quotation[]
+  salesOrders           SalesOrder[]
+  deliveryChallans      DeliveryChallan[]
+  salesInvoices         SalesInvoice[]
+  customerPayments      CustomerPayment[]
+  accounts              Account[]
+  fiscalPeriods         FiscalPeriod[]
+  exchangeRates         ExchangeRate[]
+  journalEntries        JournalEntry[]
+  expenses              Expense[]
+  assets                AssetMaster[]
+  maintenanceSchedules  MaintenanceSchedule[]
+  maintenanceOrders     MaintenanceWorkOrder[]
+  departments           Department[]
+  shifts                Shift[]
+  employees             Employee[]
+  biometricAttendances  BiometricAttendance[]
+  leaveRequests         LeaveRequest[]
+  payrollRuns           PayrollRun[]
+  payslips              Payslip[]
+
+  @@index([code])
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String            @id @default(uuid())
   tenantId     String
   email        String
   passwordHash String
   firstName    String
   lastName     String
-  status       String   @default("ACTIVE")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  phoneNumber  String?
+  status       UserAccountStatus @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
 
-  tenant    Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userRoles UserRole[]
-  tokens    RefreshToken[]
-  auditLogs AuditLog[]
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles    UserRole[]
+  refreshTokens RefreshToken[]
+  auditLogs    AuditLog[]
 
   @@unique([tenantId, email])
+  @@index([tenantId, status])
 }
 
 model Role {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   tenantId    String
   name        String
   description String?
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
-  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userRoles UserRole[]
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
 
   @@unique([tenantId, name])
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  tenantId    String
+  resource    String   // e.g., 'INVENTORY', 'WORK_ORDERS', 'GENERAL_LEDGER'
+  action      String   // e.g., 'CREATE', 'APPROVE', 'POST', 'OVERRIDE'
+  description String?
+
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rolePermissions RolePermission[]
+
+  @@unique([tenantId, resource, action])
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
 }
 
 model UserRole {
@@ -97,28 +420,49 @@ model RefreshToken {
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  tenantId  String
-  userId    String?
-  action    String
-  entity    String
-  entityId  String?
-  details   String?
-  createdAt DateTime @default(now())
+  id             String          @id @default(uuid())
+  tenantId       String
+  userId         String?
+  entityName     String          // Table/Domain object modified
+  entityId       String?
+  action         AuditActionType
+  oldValuesJson  String?         // JSON before mutation
+  newValuesJson  String?         // JSON after mutation
+  changedColumns String?         // Comma-delimited list of fields modified
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime        @default(now())
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, entityName, entityId])
+  @@index([tenantId, createdAt])
 }
 
-// ----------------------------------------------------
-// Inventory Management
-// ----------------------------------------------------
+model SystemConfig {
+  id          String   @id @default(uuid())
+  tenantId    String
+  configKey   String
+  configValue String
+  dataType    String   @default("STRING") // STRING, BOOLEAN, NUMBER, JSON
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, configKey])
+}
+
+// ============================================================================
+// 2. MASTER DATA MANAGEMENT, BOM & OPERATIONAL ROUTINGS
+// ============================================================================
 
 model Category {
   id          String   @id @default(uuid())
   tenantId    String
-  name        String
   code        String
+  name        String
   description String?
   createdAt   DateTime @default(now())
 
@@ -128,49 +472,509 @@ model Category {
   @@unique([tenantId, code])
 }
 
-model Product {
-  id            String   @id @default(uuid())
-  tenantId      String
-  categoryId    String
-  sku           String
-  name          String
-  description   String?
-  unitOfMeasure String   @default("units")
-  costPrice     Float    @default(0.0)
-  sellingPrice  Float    @default(0.0)
-  minStockLevel Int      @default(10)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model UnitOfMeasure {
+  id           String   @id @default(uuid())
+  tenantId     String
+  code         String   // e.g. KG, MTR, PCS, LTR, BOX
+  name         String
+  decimalPlaces Int     @default(2)
 
-  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  category        Category            @relation(fields: [categoryId], references: [id])
-  stockLevels     StockLevel[]
-  transferItems   StockTransferItem[]
-  poItems         PurchaseOrderItem[]
-  quotationItems  QuotationItem[]
-  salesOrderItems SalesOrderItem[]
-  invoiceItems    InvoiceItem[]
-
-  @@unique([tenantId, sku])
-}
-
-model Warehouse {
-  id        String   @id @default(uuid())
-  tenantId  String
-  code      String
-  name      String
-  location  String?
-  isPrimary Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  stockLevels     StockLevel[]
-  sourceTransfers StockTransfer[]     @relation("SourceWarehouse")
-  targetTransfers StockTransfer[]     @relation("TargetWarehouse")
-  goodsReceived   GoodsReceivedNote[]
-  salesOrders     SalesOrder[]
+  tenant         Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products       Product[]
+  bomItems       BOMItem[]
+  fromConversions UOMConversion[]      @relation("FromUOM")
+  toConversions   UOMConversion[]      @relation("ToUOM")
 
   @@unique([tenantId, code])
+}
+
+model UOMConversion {
+  id               String @id @default(uuid())
+  fromUomId        String
+  toUomId          String
+  conversionFactor Float  // e.g. 1 BOX = 100 PCS -> factor = 100
+
+  fromUom UnitOfMeasure @relation("FromUOM", fields: [fromUomId], references: [id], onDelete: Cascade)
+  toUom   UnitOfMeasure @relation("ToUOM", fields: [toUomId], references: [id], onDelete: Cascade)
+
+  @@unique([fromUomId, toUomId])
+}
+
+model Product {
+  id                  String          @id @default(uuid())
+  tenantId            String
+  categoryId          String
+  uomId               String
+  sku                 String
+  barcode             String?
+  name                String
+  description         String?
+  type                ProductType     @default(RAW_MATERIAL)
+  valuationMethod     ValuationMethod @default(FIFO)
+  standardCost        Float           @default(0.0)
+  movingAvgCost       Float           @default(0.0)
+  latestPurchasePrice Float           @default(0.0)
+  sellingPrice        Float           @default(0.0)
+  minStockThreshold   Int             @default(10)
+  maxStockThreshold   Int             @default(1000)
+  safetyStockQuantity Int             @default(5)
+  leadTimeDays        Int             @default(7)
+  scrapPercentage     Float           @default(0.0)
+  isBatchTracked      Boolean         @default(true)
+  isSerialTracked     Boolean         @default(false)
+  isQualityInspectionRequired Boolean @default(true)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  tenant               Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category             Category                @relation(fields: [categoryId], references: [id])
+  uom                  UnitOfMeasure           @relation(fields: [uomId], references: [id])
+  boms                 BillOfMaterials[]
+  bomItems             BOMItem[]
+  routings             Routing[]
+  mpsPlans             MasterProductionSchedule[]
+  mrpPlannedOrders     MRPPlannedOrder[]
+  workOrders           WorkOrder[]
+  workOrderComponents  WorkOrderComponent[]
+  inspectionPlans      InspectionPlan[]
+  batchLots            BatchLot[]
+  serialMasters        SerialMaster[]
+  stockLevels          StockLevel[]
+  binStockLevels       BinStockLevel[]
+  transferItems        StockTransferItem[]
+  inventoryLedgers     InventoryLedger[]
+  prItems              PurchaseRequisitionItem[]
+  poItems              PurchaseOrderItem[]
+  quotationItems       QuotationItem[]
+  salesOrderItems      SalesOrderItem[]
+  dispatchItems        DispatchItem[]
+  salesInvoiceItems    SalesInvoiceItem[]
+
+  @@unique([tenantId, sku])
+  @@index([tenantId, type])
+}
+
+model WorkCenter {
+  id                  String           @id @default(uuid())
+  tenantId            String
+  code                String
+  name                String
+  description         String?
+  capacityHoursPerDay Float            @default(16.0) // e.g. 2 shifts of 8h
+  efficiencyRating    Float            @default(0.85) // 85% standard efficiency
+  hourlyLaborRate     Float            @default(30.0)
+  hourlyOverheadRate  Float            @default(25.0)
+  status              WorkCenterStatus @default(OPERATIONAL)
+
+  tenant              Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  routingOperations   RoutingOperation[]
+  workOrderOperations WorkOrderOperation[]
+  shopFloorLogs       ShopFloorTimeLog[]
+  downtimeLogs        MachineDowntimeLog[]
+  assets              AssetMaster[]
+
+  @@unique([tenantId, code])
+}
+
+model BillOfMaterials {
+  id             String    @id @default(uuid())
+  tenantId       String
+  productId      String
+  bomNumber      String
+  revision       String    @default("A")
+  baseQuantity   Float     @default(1.0)
+  yieldPercentage Float    @default(100.0)
+  status         BOMStatus @default(ACTIVE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product    Product     @relation(fields: [productId], references: [id])
+  items      BOMItem[]
+  workOrders WorkOrder[]
+
+  @@unique([tenantId, bomNumber, revision])
+}
+
+model BOMItem {
+  id                 String  @id @default(uuid())
+  bomId              String
+  componentProductId String
+  uomId              String
+  quantityPerUnit    Float
+  scrapPercentage    Float   @default(0.0)
+  positionSequence   Int     @default(10)
+  notes              String?
+
+  bom                BillOfMaterials @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  componentProduct   Product         @relation(fields: [componentProductId], references: [id])
+  uom                UnitOfMeasure   @relation(fields: [uomId], references: [id])
+
+  @@unique([bomId, componentProductId])
+}
+
+model Routing {
+  id            String             @id @default(uuid())
+  tenantId      String
+  productId     String
+  routingNumber String
+  revision      String             @default("A")
+  description   String?
+  createdAt     DateTime           @default(now())
+
+  tenant        Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product       Product            @relation(fields: [productId], references: [id])
+  operations    RoutingOperation[]
+  workOrders    WorkOrder[]
+
+  @@unique([tenantId, routingNumber, revision])
+}
+
+model RoutingOperation {
+  id                 String  @id @default(uuid())
+  routingId          String
+  workCenterId       String
+  sequenceNumber     Int     // 10, 20, 30...
+  operationName      String
+  setupTimeMinutes   Float   @default(30.0)
+  runTimeMinutesUnit Float   @default(5.0)
+  laborCostPerUnit   Float   @default(2.50)
+  machineCostPerUnit Float   @default(3.00)
+
+  routing    Routing    @relation(fields: [routingId], references: [id], onDelete: Cascade)
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id])
+
+  @@unique([routingId, sequenceNumber])
+}
+
+// ============================================================================
+// 3. MRP II (MATERIAL REQUIREMENTS PLANNING & MASTER PRODUCTION SCHEDULE)
+// ============================================================================
+
+model MasterProductionSchedule {
+  id               String   @id @default(uuid())
+  tenantId         String
+  productId        String
+  periodStartDate  DateTime
+  periodEndDate    DateTime
+  forecastQuantity Float    @default(0.0)
+  firmOrderQuantity Float   @default(0.0)
+  plannedQuantity  Float    @default(0.0)
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([tenantId, productId, periodStartDate])
+}
+
+model MRPRun {
+  id              String   @id @default(uuid())
+  tenantId        String
+  runNumber       String
+  runDate         DateTime @default(now())
+  planningHorizonDays Int  @default(90)
+  parametersJson  String?
+  executedBy      String
+
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plannedOrders MRPPlannedOrder[]
+
+  @@unique([tenantId, runNumber])
+}
+
+model MRPPlannedOrder {
+  id               String   @id @default(uuid())
+  tenantId         String
+  mrpRunId         String
+  productId        String
+  orderType        String   // 'PURCHASE' or 'PRODUCTION'
+  suggestedOrderDate DateTime
+  requiredDueDate  DateTime
+  suggestedQuantity Float
+  status           String   @default("SUGGESTED") // 'SUGGESTED', 'FIRMED', 'RELEASED'
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  mrpRun  MRPRun  @relation(fields: [mrpRunId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// ============================================================================
+// 4. SHOP FLOOR CONTROL, WORK ORDERS & MACHINE OEE
+// ============================================================================
+
+model WorkOrder {
+  id                String          @id @default(uuid())
+  tenantId          String
+  woNumber          String
+  productId         String
+  bomId             String
+  routingId         String
+  warehouseId       String
+  targetQuantity    Float
+  completedQuantity Float           @default(0.0)
+  scrappedQuantity  Float           @default(0.0)
+  status            WorkOrderStatus @default(DRAFT)
+  plannedStartDate  DateTime
+  plannedEndDate    DateTime
+  actualStartDate   DateTime?
+  actualEndDate     DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  tenant          Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product         Product              @relation(fields: [productId], references: [id])
+  bom             BillOfMaterials      @relation(fields: [bomId], references: [id])
+  routing         Routing              @relation(fields: [routingId], references: [id])
+  warehouse       Warehouse            @relation(fields: [warehouseId], references: [id])
+  components      WorkOrderComponent[]
+  operations      WorkOrderOperation[]
+  shopFloorLogs   ShopFloorTimeLog[]
+  genealogyLinks  GenealogyLink[]
+
+  @@unique([tenantId, woNumber])
+}
+
+model WorkOrderComponent {
+  id               String @id @default(uuid())
+  workOrderId      String
+  productId        String
+  plannedQuantity  Float
+  issuedQuantity   Float  @default(0.0)
+  scrappedQuantity Float  @default(0.0)
+
+  workOrder WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+
+  @@unique([workOrderId, productId])
+}
+
+model WorkOrderOperation {
+  id                 String   @id @default(uuid())
+  workOrderId        String
+  sequenceNumber     Int
+  workCenterId       String
+  setupActualMinutes Float    @default(0.0)
+  runActualMinutes   Float    @default(0.0)
+  completedQuantity  Float    @default(0.0)
+  scrappedQuantity   Float    @default(0.0)
+  status             String   @default("PENDING") // PENDING, IN_PROGRESS, COMPLETED
+
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id])
+
+  @@unique([workOrderId, sequenceNumber])
+}
+
+model ShopFloorTimeLog {
+  id            String   @id @default(uuid())
+  workOrderId   String
+  workCenterId  String
+  operatorName  String
+  startTime     DateTime
+  endTime       DateTime?
+  producedUnits Int      @default(0)
+  rejectedUnits Int      @default(0)
+
+  workOrder  WorkOrder  @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id])
+}
+
+model MachineDowntimeLog {
+  id           String   @id @default(uuid())
+  workCenterId String
+  reasonCode   String   // 'BREAKDOWN', 'CHANGEOVER', 'MATERIAL_STARVATION', 'OPERATOR_BREAK'
+  description  String?
+  startTime    DateTime
+  endTime      DateTime?
+  durationMinutes Float @default(0.0)
+
+  workCenter WorkCenter @relation(fields: [workCenterId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================================
+// 5. QUALITY MANAGEMENT & IN-LINE INSPECTION (QM)
+// ============================================================================
+
+model InspectionPlan {
+  id              String          @id @default(uuid())
+  tenantId        String
+  productId       String
+  planNumber      String
+  stage           InspectionStage @default(INWARD_GOODS_RECEIPT)
+  aqlLevel        String          @default("II") // Standard AQL level II
+  samplePercentage Float          @default(10.0)
+  isActive        Boolean         @default(true)
+
+  tenant          Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product         Product                   @relation(fields: [productId], references: [id])
+  specifications  InspectionSpecification[]
+  inspections     QualityInspection[]
+
+  @@unique([tenantId, planNumber])
+}
+
+model InspectionSpecification {
+  id            String  @id @default(uuid())
+  planId        String
+  parameterName String  // e.g. 'Tensile Strength', 'Diameter', 'Purity'
+  testMethod    String  // e.g. 'Caliper', 'Spectrometer', 'Visual'
+  targetValue   Float?
+  minTolerance  Float?
+  maxTolerance  Float?
+  isCritical    Boolean @default(false)
+
+  plan InspectionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+model QualityInspection {
+  id               String           @id @default(uuid())
+  tenantId         String
+  planId           String
+  inspectionNumber String
+  stage            InspectionStage
+  referenceType    String           // 'GRN', 'WORK_ORDER', 'PRE_DISPATCH'
+  referenceId      String
+  batchNumber      String?
+  sampleSize       Int
+  passedQuantity   Int
+  rejectedQuantity Int
+  status           InspectionStatus @default(PENDING)
+  inspectorName    String
+  inspectionDate   DateTime         @default(now())
+  remarks          String?
+
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan             InspectionPlan         @relation(fields: [planId], references: [id])
+  testResults      QualityTestResult[]
+  ncrs             NonConformanceReport[]
+  coas             CertificateOfAnalysis[]
+
+  @@unique([tenantId, inspectionNumber])
+}
+
+model QualityTestResult {
+  id                  String  @id @default(uuid())
+  qualityInspectionId String
+  parameterName       String
+  measuredValue       Float?
+  isConforming        Boolean
+  notes               String?
+
+  qualityInspection QualityInspection @relation(fields: [qualityInspectionId], references: [id], onDelete: Cascade)
+}
+
+model NonConformanceReport {
+  id                  String         @id @default(uuid())
+  tenantId            String
+  qualityInspectionId String
+  ncrNumber           String
+  severity            NCRSeverity    @default(MAJOR)
+  defectDescription   String
+  rootCause           String?
+  correctiveAction    String?
+  disposition         NCRDisposition @default(REWORK)
+  status              String         @default("OPEN")
+  createdAt           DateTime       @default(now())
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  qualityInspection QualityInspection @relation(fields: [qualityInspectionId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, ncrNumber])
+}
+
+model CertificateOfAnalysis {
+  id                  String   @id @default(uuid())
+  tenantId            String
+  qualityInspectionId String
+  coaNumber           String
+  batchNumber         String
+  issuedDate          DateTime @default(now())
+  approvedBy          String
+
+  tenant            Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  qualityInspection QualityInspection @relation(fields: [qualityInspectionId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, coaNumber])
+}
+
+// ============================================================================
+// 6. ADVANCED WMS, BIN TRACKING & FULL LOT GENEALOGY TRACEABILITY
+// ============================================================================
+
+model Warehouse {
+  id          String   @id @default(uuid())
+  tenantId    String
+  code        String
+  name        String
+  address     String?
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  tenant           Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  bins             WarehouseBin[]
+  stockLevels      StockLevel[]
+  sourceTransfers  StockTransfer[]     @relation("SourceWH")
+  targetTransfers  StockTransfer[]     @relation("TargetWH")
+  workOrders       WorkOrder[]
+  goodsReceived    GoodsReceivedNote[]
+  salesOrders      SalesOrder[]
+
+  @@unique([tenantId, code])
+}
+
+model WarehouseBin {
+  id             String   @id @default(uuid())
+  tenantId       String
+  warehouseId    String
+  binCode        String   // e.g. 'A-01-R02-B04' (Zone A, Aisle 1, Rack 2, Bin 4)
+  zone           String   @default("GENERAL")
+  maxWeightKg    Float    @default(500.0)
+  isOccupied     Boolean  @default(false)
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  binStockLevels BinStockLevel[]
+  serialMasters  SerialMaster[]
+
+  @@unique([warehouseId, binCode])
+}
+
+model BatchLot {
+  id              String    @id @default(uuid())
+  tenantId        String
+  productId       String
+  batchNumber     String
+  manufactureDate DateTime
+  expiryDate      DateTime?
+  status          LotStatus @default(QUARANTINE)
+  qcPassedDate    DateTime?
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product          Product           @relation(fields: [productId], references: [id])
+  binStockLevels   BinStockLevel[]
+  serialMasters    SerialMaster[]
+  inventoryLedgers InventoryLedger[]
+  parentGenealogy  GenealogyLink[]   @relation("ParentBatch")
+  childGenealogy   GenealogyLink[]   @relation("ChildBatch")
+
+  @@unique([tenantId, productId, batchNumber])
+}
+
+model SerialMaster {
+  id           String       @id @default(uuid())
+  tenantId     String
+  productId    String
+  batchId      String?
+  binId        String?
+  serialNumber String
+  status       SerialStatus @default(AVAILABLE)
+
+  tenant  Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+  batch   BatchLot?     @relation(fields: [batchId], references: [id])
+  bin     WarehouseBin? @relation(fields: [binId], references: [id])
+
+  @@unique([tenantId, serialNumber])
 }
 
 model StockLevel {
@@ -178,34 +982,50 @@ model StockLevel {
   tenantId          String
   productId         String
   warehouseId       String
-  quantityOnHand    Int      @default(0)
-  quantityReserved  Int      @default(0)
-  quantityAvailable Int      @default(0)
+  quantityOnHand    Float    @default(0.0)
+  quantityReserved  Float    @default(0.0)
+  quantityAvailable Float    @default(0.0)
   updatedAt         DateTime @updatedAt
 
   tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
 
   @@unique([warehouseId, productId])
 }
 
+model BinStockLevel {
+  id             String   @id @default(uuid())
+  tenantId       String
+  productId      String
+  binId          String
+  batchId        String?
+  quantityOnHand Float    @default(0.0)
+  updatedAt      DateTime @updatedAt
+
+  tenant  Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id])
+  bin     WarehouseBin @relation(fields: [binId], references: [id])
+  batch   BatchLot?    @relation(fields: [batchId], references: [id])
+
+  @@unique([binId, productId, batchId])
+}
+
 model StockTransfer {
-  id                String   @id @default(uuid())
+  id                String         @id @default(uuid())
   tenantId          String
   transferNumber    String
   sourceWarehouseId String
   targetWarehouseId String
-  status            String   @default("PENDING")
+  status            TransferStatus @default(DRAFT)
   requestedBy       String
   approvedBy        String?
   notes             String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime       @default(now())
 
   tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  sourceWarehouse Warehouse           @relation("SourceWarehouse", fields: [sourceWarehouseId], references: [id])
-  targetWarehouse Warehouse           @relation("TargetWarehouse", fields: [targetWarehouseId], references: [id])
+  sourceWarehouse Warehouse           @relation("SourceWH", fields: [sourceWarehouseId], references: [id])
+  targetWarehouse Warehouse           @relation("TargetWH", fields: [targetWarehouseId], references: [id])
   items           StockTransferItem[]
 
   @@unique([tenantId, transferNumber])
@@ -215,53 +1035,135 @@ model StockTransferItem {
   id         String @id @default(uuid())
   transferId String
   productId  String
-  quantity   Int
+  quantity   Float
 
   transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
   product  Product       @relation(fields: [productId], references: [id])
 }
 
-// ----------------------------------------------------
-// Procurement
-// ----------------------------------------------------
+model InventoryLedger {
+  id           String            @id @default(uuid())
+  tenantId     String
+  movementType StockMovementType
+  productId    String
+  batchId      String?
+  quantity     Float
+  unitCost     Float
+  totalCost    Float
+  balanceAfter Float
+  referenceId  String?
+  timestamp    DateTime          @default(now())
+
+  tenant  Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product Product   @relation(fields: [productId], references: [id])
+  batch   BatchLot? @relation(fields: [batchId], references: [id])
+
+  @@index([tenantId, productId, timestamp])
+}
+
+model GenealogyLink {
+  id            String    @id @default(uuid())
+  tenantId      String
+  parentBatchId String    // Raw material batch
+  childBatchId  String    // Finished product batch
+  workOrderId   String?
+  quantityUsed  Float
+  timestamp     DateTime  @default(now())
+
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parentBatch BatchLot  @relation("ParentBatch", fields: [parentBatchId], references: [id])
+  childBatch  BatchLot  @relation("ChildBatch", fields: [childBatchId], references: [id])
+  workOrder   WorkOrder? @relation(fields: [workOrderId], references: [id])
+}
+
+// ============================================================================
+// 7. PROCUREMENT & 3-WAY MATCHING ENGINE
+// ============================================================================
 
 model Vendor {
-  id           String   @id @default(uuid())
-  tenantId     String
-  code         String
-  companyName  String
-  contactName  String?
-  email        String
-  phone        String?
-  address      String?
-  paymentTerms String   @default("NET30")
-  createdAt    DateTime @default(now())
+  id            String   @id @default(uuid())
+  tenantId      String
+  code          String
+  companyName   String
+  contactName   String?
+  email         String
+  phone         String?
+  taxIdentifier String?
+  paymentTerms  String   @default("NET30")
+  currencyCode  String   @default("USD")
+  ratingScore   Float    @default(5.0)
+  createdAt     DateTime @default(now())
 
-  tenant         Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant        Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rfqs          RequestForQuotation[]
   purchaseOrders PurchaseOrder[]
+  invoices      VendorInvoice[]
 
   @@unique([tenantId, code])
 }
 
-model PurchaseOrder {
-  id           String    @id @default(uuid())
-  tenantId     String
-  poNumber     String
-  vendorId     String
-  status       String    @default("DRAFT")
-  subtotal     Float     @default(0.0)
-  taxAmount    Float     @default(0.0)
-  totalAmount  Float     @default(0.0)
-  createdById  String
-  approvedById String?
-  approvedAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+model PurchaseRequisition {
+  id              String            @id @default(uuid())
+  tenantId        String
+  prNumber        String
+  departmentName  String
+  requestedBy     String
+  status          RequisitionStatus @default(DRAFT)
+  totalEstimated  Float             @default(0.0)
+  createdAt       DateTime          @default(now())
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  vendor        Vendor              @relation(fields: [vendorId], references: [id])
-  items         PurchaseOrderItem[]
-  goodsReceived GoodsReceivedNote[]
+  tenant Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  PurchaseRequisitionItem[]
+
+  @@unique([tenantId, prNumber])
+}
+
+model PurchaseRequisitionItem {
+  id            String @id @default(uuid())
+  requisitionId String
+  productId     String
+  quantity      Float
+  estimatedPrice Float
+
+  requisition PurchaseRequisition @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  product     Product             @relation(fields: [productId], references: [id])
+}
+
+model RequestForQuotation {
+  id        String   @id @default(uuid())
+  tenantId  String
+  rfqNumber String
+  vendorId  String
+  dueDate   DateTime
+  status    String   @default("ISSUED")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendor Vendor @relation(fields: [vendorId], references: [id])
+
+  @@unique([tenantId, rfqNumber])
+}
+
+model PurchaseOrder {
+  id          String              @id @default(uuid())
+  tenantId    String
+  poNumber    String
+  vendorId    String
+  status      PurchaseOrderStatus @default(DRAFT)
+  subtotal    Float               @default(0.0)
+  taxAmount   Float               @default(0.0)
+  totalAmount Float               @default(0.0)
+  createdById String
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendor          Vendor              @relation(fields: [vendorId], references: [id])
+  items           PurchaseOrderItem[]
+  goodsReceived   GoodsReceivedNote[]
+  invoices        VendorInvoice[]
+  threeWayMatches ThreeWayMatchLog[]
 
   @@unique([tenantId, poNumber])
 }
@@ -271,8 +1173,8 @@ model PurchaseOrderItem {
   purchaseOrderId  String
   productId        String
   unitPrice        Float
-  quantityOrdered  Int
-  quantityReceived Int    @default(0)
+  quantityOrdered  Float
+  quantityReceived Float  @default(0.0)
   totalPrice       Float
 
   purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
@@ -286,31 +1188,74 @@ model GoodsReceivedNote {
   grnNumber       String
   purchaseOrderId String
   warehouseId     String
-  receivedById    String
   receivedDate    DateTime @default(now())
-  notes           String?
+  receivedBy      String
 
-  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  purchaseOrder PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
-  warehouse     Warehouse         @relation(fields: [warehouseId], references: [id])
-  items         GRNItem[]
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  warehouse       Warehouse          @relation(fields: [warehouseId], references: [id])
+  items           GRNItem[]
+  threeWayMatches ThreeWayMatchLog[]
 
   @@unique([tenantId, grnNumber])
 }
 
 model GRNItem {
-  id                  String @id @default(uuid())
+  id                  String  @id @default(uuid())
   grnId               String
   purchaseOrderItemId String
-  quantityReceived    Int
+  quantityReceived    Float
+  quantityAccepted    Float
+  quantityRejected    Float   @default(0.0)
+  batchNumber         String?
 
   grn               GoodsReceivedNote @relation(fields: [grnId], references: [id], onDelete: Cascade)
   purchaseOrderItem PurchaseOrderItem @relation(fields: [purchaseOrderItemId], references: [id])
 }
 
-// ----------------------------------------------------
-// Sales Order Management
-// ----------------------------------------------------
+model VendorInvoice {
+  id              String             @id @default(uuid())
+  tenantId        String
+  invoiceNumber   String
+  vendorId        String
+  purchaseOrderId String
+  subtotal        Float
+  taxAmount       Float
+  totalAmount     Float
+  dueDate         DateTime
+  status          InvoiceStatus      @default(UNPAID)
+  matchStatus     ThreeWayMatchStatus @default(PENDING_MATCH)
+  createdAt       DateTime           @default(now())
+
+  tenant          Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  vendor          Vendor             @relation(fields: [vendorId], references: [id])
+  purchaseOrder   PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  threeWayMatches ThreeWayMatchLog[]
+
+  @@unique([tenantId, vendorId, invoiceNumber])
+}
+
+model ThreeWayMatchLog {
+  id               String              @id @default(uuid())
+  tenantId         String
+  purchaseOrderId  String
+  grnId            String
+  vendorInvoiceId  String
+  priceVariance    Float               @default(0.0)
+  quantityVariance Float               @default(0.0)
+  matchStatus      ThreeWayMatchStatus
+  reviewedBy       String?
+  timestamp        DateTime            @default(now())
+
+  tenant        Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  purchaseOrder PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id])
+  grn           GoodsReceivedNote @relation(fields: [grnId], references: [id])
+  vendorInvoice VendorInvoice     @relation(fields: [vendorInvoiceId], references: [id])
+}
+
+// ============================================================================
+// 8. SALES, PRICING ENGINE & ORDER-TO-CASH (O2C)
+// ============================================================================
 
 model Customer {
   id              String   @id @default(uuid())
@@ -319,28 +1264,46 @@ model Customer {
   name            String
   email           String
   phone           String?
+  taxIdentifier   String?
+  creditLimit     Float    @default(25000.0)
+  creditTermDays  Int      @default(30)
+  priceTier       String   @default("STANDARD") // STANDARD, SILVER, GOLD, WHOLESALE
   billingAddress  String?
   shippingAddress String?
-  creditLimit     Float    @default(10000.0)
   createdAt       DateTime @default(now())
 
-  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  quotations  Quotation[]
-  salesOrders SalesOrder[]
-  invoices    Invoice[]
+  tenant       Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quotations   Quotation[]
+  salesOrders  SalesOrder[]
+  invoices     SalesInvoice[]
+  payments     CustomerPayment[]
 
   @@unique([tenantId, code])
 }
 
+model PriceTierMatrix {
+  id          String @id @default(uuid())
+  tenantId    String
+  tierName    String // 'WHOLESALE', 'RETAIL', 'DISTRIBUTOR'
+  minQuantity Float  @default(1.0)
+  discountPct Float  @default(0.0)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, tierName, minQuantity])
+}
+
 model Quotation {
-  id          String   @id @default(uuid())
+  id          String          @id @default(uuid())
   tenantId    String
   quoteNumber String
   customerId  String
-  status      String   @default("DRAFT")
   validUntil  DateTime
-  totalAmount Float    @default(0.0)
-  createdAt   DateTime @default(now())
+  status      QuotationStatus @default(DRAFT)
+  subtotal    Float           @default(0.0)
+  taxAmount   Float           @default(0.0)
+  totalAmount Float           @default(0.0)
+  createdAt   DateTime        @default(now())
 
   tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer   Customer        @relation(fields: [customerId], references: [id])
@@ -354,9 +1317,9 @@ model QuotationItem {
   id          String @id @default(uuid())
   quotationId String
   productId   String
-  quantity    Int
+  quantity    Float
   unitPrice   Float
-  discount    Float  @default(0.0)
+  discountPct Float  @default(0.0)
   totalPrice  Float
 
   quotation Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
@@ -364,23 +1327,26 @@ model QuotationItem {
 }
 
 model SalesOrder {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   tenantId    String
   soNumber    String
-  quotationId String?  @unique
+  quotationId String?          @unique
   customerId  String
   warehouseId String
-  status      String   @default("PENDING")
-  totalAmount Float    @default(0.0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      SalesOrderStatus @default(DRAFT)
+  subtotal    Float            @default(0.0)
+  taxAmount   Float            @default(0.0)
+  totalAmount Float            @default(0.0)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  quotation Quotation?       @relation(fields: [quotationId], references: [id])
-  customer  Customer         @relation(fields: [customerId], references: [id])
-  warehouse Warehouse        @relation(fields: [warehouseId], references: [id])
-  items     SalesOrderItem[]
-  invoices  Invoice[]
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  quotation        Quotation?        @relation(fields: [quotationId], references: [id])
+  customer         Customer          @relation(fields: [customerId], references: [id])
+  warehouse        Warehouse         @relation(fields: [warehouseId], references: [id])
+  items            SalesOrderItem[]
+  deliveryChallans DeliveryChallan[]
+  invoices         SalesInvoice[]
 
   @@unique([tenantId, soNumber])
 }
@@ -389,97 +1355,153 @@ model SalesOrderItem {
   id           String @id @default(uuid())
   salesOrderId String
   productId    String
-  quantity     Int
+  quantity     Float
   unitPrice    Float
-  discount     Float  @default(0.0)
+  discountPct  Float  @default(0.0)
   totalPrice   Float
 
   salesOrder SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
   product    Product    @relation(fields: [productId], references: [id])
 }
 
-model Invoice {
+model DeliveryChallan {
   id             String   @id @default(uuid())
   tenantId       String
-  invoiceNumber  String
+  challanNumber  String
   salesOrderId   String
-  customerId     String
-  status         String   @default("UNPAID")
-  subtotal       Float
-  taxRate        Float    @default(10.0)
-  taxAmount      Float
-  discountAmount Float    @default(0.0)
-  totalAmount    Float
-  dueDate        DateTime
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  dispatchDate   DateTime @default(now())
+  carrierName    String?
+  trackingNumber String?
 
-  tenant     Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  salesOrder SalesOrder    @relation(fields: [salesOrderId], references: [id])
-  customer   Customer      @relation(fields: [customerId], references: [id])
-  items      InvoiceItem[]
-  payments   Payment[]
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  salesOrder SalesOrder     @relation(fields: [salesOrderId], references: [id])
+  items      DispatchItem[]
+
+  @@unique([tenantId, challanNumber])
+}
+
+model DispatchItem {
+  id                String  @id @default(uuid())
+  deliveryChallanId String
+  productId         String
+  quantityDispatched Float
+  batchNumber       String?
+
+  deliveryChallan DeliveryChallan @relation(fields: [deliveryChallanId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id])
+}
+
+model SalesInvoice {
+  id            String        @id @default(uuid())
+  tenantId      String
+  invoiceNumber String
+  salesOrderId  String
+  customerId    String
+  status        InvoiceStatus @default(UNPAID)
+  subtotal      Float
+  taxRate       Float         @default(10.0)
+  taxAmount     Float
+  totalAmount   Float
+  dueDate       DateTime
+  createdAt     DateTime      @default(now())
+
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  salesOrder SalesOrder         @relation(fields: [salesOrderId], references: [id])
+  customer   Customer           @relation(fields: [customerId], references: [id])
+  items      SalesInvoiceItem[]
+  payments   CustomerPayment[]
 
   @@unique([tenantId, invoiceNumber])
 }
 
-model InvoiceItem {
-  id         String @id @default(uuid())
-  invoiceId  String
-  productId  String
-  quantity   Int
-  unitPrice  Float
-  totalPrice Float
+model SalesInvoiceItem {
+  id             String @id @default(uuid())
+  salesInvoiceId String
+  productId      String
+  quantity       Float
+  unitPrice      Float
+  totalPrice     Float
 
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id])
+  salesInvoice SalesInvoice @relation(fields: [salesInvoiceId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id])
 }
 
-model Payment {
-  id            String   @id @default(uuid())
-  tenantId      String
-  invoiceId     String
-  paymentNumber String
-  amount        Float
-  paymentMethod String   @default("BANK_TRANSFER")
-  paymentDate   DateTime @default(now())
-  reference     String?
+model CustomerPayment {
+  id             String   @id @default(uuid())
+  tenantId       String
+  paymentNumber  String
+  customerId     String
+  salesInvoiceId String
+  amount         Float
+  paymentMethod  String   @default("BANK_TRANSFER")
+  paymentDate    DateTime @default(now())
+  reference      String?
 
-  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  salesInvoice SalesInvoice @relation(fields: [salesInvoiceId], references: [id])
 
   @@unique([tenantId, paymentNumber])
 }
 
-// ----------------------------------------------------
-// Finance & Accounting
-// ----------------------------------------------------
+// ============================================================================
+// 9. DOUBLE-ENTRY GENERAL LEDGER, COST ACCOUNTING & MULTI-CURRENCY
+// ============================================================================
 
 model Account {
-  id          String   @id @default(uuid())
-  tenantId    String
-  accountCode String
-  accountName String
-  accountType String
-  balance     Float    @default(0.0)
-  createdAt   DateTime @default(now())
+  id             String                @id @default(uuid())
+  tenantId       String
+  accountCode    String                // 1000 Assets, 2000 Liabilities, etc.
+  accountName    String
+  classification AccountClassification
+  balance        Float                 @default(0.0)
+  parentAccountId String?
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent       Account?      @relation("AccountHierarchy", fields: [parentAccountId], references: [id])
+  children     Account[]     @relation("AccountHierarchy")
   journalLines JournalLine[]
 
   @@unique([tenantId, accountCode])
 }
 
+model FiscalPeriod {
+  id        String   @id @default(uuid())
+  tenantId  String
+  year      Int
+  period    Int      // 1-12
+  startDate DateTime
+  endDate   DateTime
+  isLocked  Boolean  @default(false)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, year, period])
+}
+
+model ExchangeRate {
+  id           String   @id @default(uuid())
+  tenantId     String
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  effectiveDate DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, fromCurrency, toCurrency, effectiveDate])
+}
+
 model JournalEntry {
-  id            String   @id @default(uuid())
+  id            String             @id @default(uuid())
   tenantId      String
   entryNumber   String
-  entryDate     DateTime @default(now())
+  entryDate     DateTime           @default(now())
   description   String
-  referenceType String?
+  referenceType String?            // 'SALES_DISPATCH', 'GRN_RECEIPT', 'PAYROLL_POSTING'
   referenceId   String?
-  status        String   @default("DRAFT")
-  createdAt     DateTime @default(now())
+  status        JournalEntryStatus @default(DRAFT)
+  createdAt     DateTime           @default(now())
 
   tenant Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   lines  JournalLine[]
@@ -507,50 +1529,136 @@ model Expense {
   taxAmount     Float    @default(0.0)
   expenseDate   DateTime @default(now())
   description   String?
-  paymentStatus String   @default("PAID")
   receiptUrl    String?
-  createdAt     DateTime @default(now())
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, expenseNumber])
 }
 
-// ----------------------------------------------------
-// HR & Payroll
-// ----------------------------------------------------
+// ============================================================================
+// 10. PLANT MAINTENANCE & CALIBRATION (CMMS)
+// ============================================================================
+
+model AssetMaster {
+  id                   String                 @id @default(uuid())
+  tenantId             String
+  assetTag             String
+  name                 String
+  workCenterId         String?
+  purchaseDate         DateTime
+  warrantyExpiry       DateTime?
+  status               AssetMaintenanceStatus @default(OPERATIONAL)
+  maintenanceFrequencyDays Int                @default(90)
+
+  tenant      Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  workCenter  WorkCenter?            @relation(fields: [workCenterId], references: [id])
+  schedules   MaintenanceSchedule[]
+  workOrders  MaintenanceWorkOrder[]
+
+  @@unique([tenantId, assetTag])
+}
+
+model MaintenanceSchedule {
+  id          String   @id @default(uuid())
+  tenantId    String
+  assetId     String
+  taskName    String
+  intervalDays Int
+  lastDoneDate DateTime?
+  nextDueDate DateTime
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  AssetMaster @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model MaintenanceWorkOrder {
+  id            String   @id @default(uuid())
+  tenantId      String
+  mwoNumber     String
+  assetId       String
+  issueType     String   // 'PREVENTIVE', 'BREAKDOWN', 'CALIBRATION'
+  failureReason String?
+  technicianName String
+  downtimeHours Float    @default(0.0)
+  costTotal     Float    @default(0.0)
+  status        String   @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED
+  createdAt     DateTime @default(now())
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset  AssetMaster @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, mwoNumber])
+}
+
+// ============================================================================
+// 11. HR, SHIFT ROSTER & ADVANCED PAYROLL
+// ============================================================================
+
+model Department {
+  id        String   @id @default(uuid())
+  tenantId  String
+  code      String
+  name      String
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employees Employee[]
+
+  @@unique([tenantId, code])
+}
+
+model Shift {
+  id             String   @id @default(uuid())
+  tenantId       String
+  name           String   // 'Morning Shift (A)', 'Evening Shift (B)', 'Night (C)'
+  startTime      String   // '08:00'
+  endTime        String   // '16:30'
+  breakDurationMinutes Int @default(30)
+
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employees Employee[]
+
+  @@unique([tenantId, name])
+}
 
 model Employee {
   id                String   @id @default(uuid())
   tenantId          String
+  departmentId      String
+  shiftId           String?
   employeeCode      String
   firstName         String
   lastName          String
   email             String
   phone             String?
-  department        String
   designation       String
   joiningDate       DateTime
-  baseSalary        Float
+  baseSalaryMonthly Float
   bankAccountNumber String?
+  taxIdentifier     String?
   createdAt         DateTime @default(now())
 
-  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  attendances Attendance[]
-  payslips    Payslip[]
+  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  department   Department            @relation(fields: [departmentId], references: [id])
+  shift        Shift?                @relation(fields: [shiftId], references: [id])
+  attendances  BiometricAttendance[]
+  leaveRequests LeaveRequest[]
+  payslips     Payslip[]
 
   @@unique([tenantId, employeeCode])
   @@unique([tenantId, email])
 }
 
-model Attendance {
-  id         String   @id @default(uuid())
-  tenantId   String
-  employeeId String
-  date       DateTime
-  status     String   @default("PRESENT")
-  checkIn    String?
-  checkOut   String?
+model BiometricAttendance {
+  id                  String           @id @default(uuid())
+  tenantId            String
+  employeeId          String
+  date                DateTime
+  status              AttendanceStatus @default(PRESENT)
+  checkInTime         String?
+  checkOutTime        String?
+  workDurationMinutes Int              @default(480)
+  overtimeMinutes     Int              @default(0)
 
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -558,16 +1666,29 @@ model Attendance {
   @@unique([tenantId, employeeId, date])
 }
 
+model LeaveRequest {
+  id         String   @id @default(uuid())
+  tenantId   String
+  employeeId String
+  leaveType  String   // 'CASUAL', 'SICK', 'EARNED', 'UNPAID'
+  startDate  DateTime
+  endDate    DateTime
+  status     String   @default("APPROVED") // PENDING, APPROVED, REJECTED
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
 model PayrollRun {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   tenantId        String
-  payrollPeriod   String
+  payrollPeriod   String        // 'YYYY-MM'
   payDate         DateTime
-  status          String   @default("DRAFT")
-  totalGross      Float    @default(0.0)
-  totalDeductions Float    @default(0.0)
-  totalNet        Float    @default(0.0)
-  createdAt       DateTime @default(now())
+  status          PayrollStatus @default(DRAFT)
+  totalGross      Float         @default(0.0)
+  totalDeductions Float         @default(0.0)
+  totalNet        Float         @default(0.0)
+  createdAt       DateTime      @default(now())
 
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   payslips Payslip[]
@@ -576,16 +1697,18 @@ model PayrollRun {
 }
 
 model Payslip {
-  id           String @id @default(uuid())
+  id           String        @id @default(uuid())
+  tenantId     String
   payrollRunId String
   employeeId   String
   basePay      Float
-  allowances   Float  @default(0.0)
-  deductions   Float  @default(0.0)
-  taxAmount    Float  @default(0.0)
+  allowances   Float         @default(0.0)
+  deductions   Float         @default(0.0)
+  taxAmount    Float         @default(0.0)
   netPay       Float
-  status       String @default("DRAFT")
+  status       PayrollStatus @default(DRAFT)
 
+  tenant     Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   payrollRun PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   employee   Employee   @relation(fields: [employeeId], references: [id])
 
