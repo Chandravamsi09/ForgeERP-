@@ -3,6 +3,7 @@ import cors from 'cors';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
+import inventoryRoutes from './modules/inventory/inventory.routes';
 
 export const createApp = () => {
   const app = express();
@@ -25,6 +26,7 @@ export const createApp = () => {
 
   // Module Routes
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/inventory', inventoryRoutes);
 
   // Global Error Handler
   app.use(errorHandler);
