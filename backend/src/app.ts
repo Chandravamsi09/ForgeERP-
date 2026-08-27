@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
+import authRoutes from './modules/auth/auth.routes';
 
 export const createApp = () => {
   const app = express();
@@ -21,6 +22,9 @@ export const createApp = () => {
       },
     });
   });
+
+  // Module Routes
+  app.use('/api/v1/auth', authRoutes);
 
   // Global Error Handler
   app.use(errorHandler);
