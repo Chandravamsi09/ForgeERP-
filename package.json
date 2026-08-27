@@ -1,29 +1,25 @@
 {
   "name": "forge-erp",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Enterprise Resource Planning System for Manufacturing Enterprises",
+  "description": "Tier-1 Manufacturing Enterprise Resource Planning (ERP) Platform",
   "workspaces": [
     "shared",
     "backend",
     "frontend"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
-    "start:backend": "npm run start --workspace=backend",
-    "dev:backend": "npm run dev --workspace=backend",
-    "dev:frontend": "npm run dev --workspace=frontend",
-    "test": "npm run test --workspaces --if-present",
-    "test:backend": "npm run test --workspace=backend",
-    "test:frontend": "npm run test --workspace=frontend",
+    "start": "npm --prefix backend start",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix shared run build && npm --prefix backend run build && npm --prefix frontend run build",
+    "test": "npm --prefix backend test",
     "lint": "eslint . --ext .ts,.tsx",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\""
+    "typecheck": "tsc -b shared backend frontend"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.56.0",
-    "prettier": "^3.2.5",
-    "typescript": "^5.3.3"
+    "concurrently": "^8.2.2",
+    "typescript": "^5.9.3"
   }
 }

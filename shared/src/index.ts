@@ -8,6 +8,16 @@ export * from './engines/fixedAssetEngine';
 export * from './engines/revenueRecognitionEngine';
 export * from './engines/globalTradeEngine';
 
+export * from './domain/financialRatios';
+export * from './domain/taxMatrices';
+export * from './domain/chartOfAccountsMaster';
+export * from './domain/inventoryOptimization';
+export * from './domain/finiteCapacityScheduling';
+export * from './domain/fmeaReliabilityEngine';
+export * from './domain/fxHedging';
+export * from './domain/warehouseSlottingEngine';
+export * from './domain/costCenterAllocationEngine';
+
 export enum UserRole {
   ADMIN = 'ADMIN',
   MANAGER = 'MANAGER',
