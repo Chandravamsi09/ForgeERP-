@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-900 text-slate-100 min-h-screen;
+  html, body, #root {
+    background-color: #020617; /* bg-slate-950 */
+    color: #f8fafc; /* text-slate-100 */
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
   }
 }

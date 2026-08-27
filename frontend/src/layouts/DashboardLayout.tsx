@@ -39,12 +39,12 @@ export const DashboardLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden select-none">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0">
+      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 h-full">
         <div>
           {/* Logo */}
-          <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+          <div className="h-16 flex items-center px-6 border-b border-slate-800 gap-3 bg-slate-900">
             <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center font-black text-slate-950 text-lg shadow-lg shadow-sky-500/20">
               F
             </div>
@@ -55,17 +55,17 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-10rem)]">
+          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-8.5rem)]">
             {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
                 end={item.path === '/'}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30 font-bold shadow-sm'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/80'
                   }`
                 }
               >
@@ -77,19 +77,19 @@ export const DashboardLayout: React.FC = () => {
         </div>
 
         {/* User Info & Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/60">
+        <div className="p-4 border-t border-slate-800 bg-slate-900/90">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-sky-400">
-                {user?.firstName?.[0] || 'U'}
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-sky-400 shrink-0">
+                {user?.firstName?.[0] || 'A'}
               </div>
               <div className="overflow-hidden">
                 <p className="text-xs font-semibold text-slate-200 truncate">
-                  {user?.firstName} {user?.lastName}
+                  {user?.firstName || 'Admin'} {user?.lastName || 'User'}
                 </p>
-                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-mono uppercase font-bold truncate">
+                <p className="text-[10px] text-sky-400 flex items-center gap-1 font-mono uppercase font-bold truncate">
                   <Shield className="w-2.5 h-2.5 text-sky-400" />
-                  {user?.roles?.[0] || 'USER'}
+                  {user?.roles?.[0] || 'ADMIN'}
                 </p>
               </div>
             </div>
