@@ -7,6 +7,7 @@ import inventoryRoutes from './modules/inventory/inventory.routes';
 import procurementRoutes from './modules/procurement/procurement.routes';
 import salesRoutes from './modules/sales/sales.routes';
 import financeRoutes from './modules/finance/finance.routes';
+import hrRoutes from './modules/hr/hr.routes';
 
 export const createApp = () => {
   const app = express();
@@ -33,6 +34,7 @@ export const createApp = () => {
   app.use('/api/v1/procurement', procurementRoutes);
   app.use('/api/v1/sales', salesRoutes);
   app.use('/api/v1/finance', financeRoutes);
+  app.use('/api/v1/hr', hrRoutes);
 
   // Global Error Handler
   app.use(errorHandler);
