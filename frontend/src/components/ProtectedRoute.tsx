@@ -5,15 +5,16 @@ import { UserRole } from '@forge-erp/shared';
 
 interface ProtectedRouteProps {
   roles?: UserRole[];
+  children?: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles, children }) => {
   const { user, token, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">
-        Loading session...
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 font-mono">
+        Loading ForgeERP secure session...
       </div>
     );
   }
@@ -27,8 +28,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
     if (!hasPermission) {
       return (
         <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
-          <div className="bg-slate-900 border border-red-500/20 p-8 rounded-xl max-w-md">
-            <h2 className="text-xl font-bold text-red-400">403 Access Denied</h2>
+          <div className="bg-slate-900 border border-rose-500/20 p-8 rounded-xl max-w-md shadow-2xl">
+            <h2 className="text-xl font-bold text-rose-400">403 Access Denied</h2>
             <p className="text-slate-400 text-sm mt-2">
               You do not have permission to access this module. Contact your organization administrator.
             </p>
@@ -38,5 +39,5 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ roles }) => {
     }
   }
 
-  return <Outlet />;
+  return children ? <>{children}</> : <Outlet />;
 };
