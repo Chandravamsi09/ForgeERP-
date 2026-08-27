@@ -1,45 +1,67 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
-import authRoutes from './modules/auth/auth.routes';
-import inventoryRoutes from './modules/inventory/inventory.routes';
-import procurementRoutes from './modules/procurement/procurement.routes';
-import salesRoutes from './modules/sales/sales.routes';
-import financeRoutes from './modules/finance/finance.routes';
-import hrRoutes from './modules/hr/hr.routes';
-import reportsRoutes from './modules/reports/reports.routes';
 
-export const createApp = () => {
-  const app = express();
+import authRouter from './modules/auth/auth.routes';
+import inventoryRouter from './modules/inventory/inventory.routes';
+import procurementRouter from './modules/procurement/procurement.routes';
+import salesRouter from './modules/sales/sales.routes';
+import financeRouter from './modules/finance/finance.routes';
+import hrRouter from './modules/hr/hr.routes';
+import reportsRouter from './modules/reports/reports.routes';
+import manufacturingRouter from './modules/manufacturing/workOrder.routes';
+import qualityRouter from './modules/quality/quality.routes';
+import wmsRouter from './modules/wms/wms.routes';
+import consolidationRouter from './modules/finance/consolidation.routes';
+import documentRouter from './modules/documents/document.routes';
 
-  app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+const app = express();
 
-  // Health check endpoint
-  app.get('/api/v1/health', (req: Request, res: Response) => {
-    res.status(200).json({
-      success: true,
-      data: {
-        status: 'UP',
-        app: 'ForgeERP Backend API',
-        timestamp: new Date().toISOString(),
-      },
-    });
+// Security and utility middleware
+app.use(helmet());
+app.use(
+  cors({
+    origin: env.CORS_ORIGIN,
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+if (env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
+
+// Health Check API
+app.get('/api/v1/health', (_req, res) => {
+  res.status(200).json({
+    success: true,
+    data: {
+      status: 'UP',
+      app: 'ForgeERP Backend API',
+      timestamp: new Date().toISOString(),
+    },
   });
+});
 
-  // Module Routes
-  app.use('/api/v1/auth', authRoutes);
-  app.use('/api/v1/inventory', inventoryRoutes);
-  app.use('/api/v1/procurement', procurementRoutes);
-  app.use('/api/v1/sales', salesRoutes);
-  app.use('/api/v1/finance', financeRoutes);
-  app.use('/api/v1/hr', hrRoutes);
-  app.use('/api/v1/reports', reportsRoutes);
+// Domain Routing Modules (20 Subsystems Architecture)
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/inventory', inventoryRouter);
+app.use('/api/v1/procurement', procurementRouter);
+app.use('/api/v1/sales', salesRouter);
+app.use('/api/v1/finance', financeRouter);
+app.use('/api/v1/hr', hrRouter);
+app.use('/api/v1/reports', reportsRouter);
+app.use('/api/v1/manufacturing', manufacturingRouter);
+app.use('/api/v1/quality', qualityRouter);
+app.use('/api/v1/wms', wmsRouter);
+app.use('/api/v1/consolidation', consolidationRouter);
+app.use('/api/v1/documents', documentRouter);
 
-  // Global Error Handler
-  app.use(errorHandler);
+// Global Error Handler Middleware
+app.use(errorHandler);
 
-  return app;
-};
+export default app;
