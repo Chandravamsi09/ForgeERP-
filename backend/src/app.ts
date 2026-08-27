@@ -5,6 +5,7 @@ import { errorHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/auth.routes';
 import inventoryRoutes from './modules/inventory/inventory.routes';
 import procurementRoutes from './modules/procurement/procurement.routes';
+import salesRoutes from './modules/sales/sales.routes';
 
 export const createApp = () => {
   const app = express();
@@ -29,6 +30,7 @@ export const createApp = () => {
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/inventory', inventoryRoutes);
   app.use('/api/v1/procurement', procurementRoutes);
+  app.use('/api/v1/sales', salesRoutes);
 
   // Global Error Handler
   app.use(errorHandler);
