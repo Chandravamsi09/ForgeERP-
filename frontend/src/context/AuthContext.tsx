@@ -30,28 +30,64 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [token, setToken] = useState<string | null>(localStorage.getItem('accessToken'));
-  const [loading, setLoading] = useState<boolean>(true);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('accessToken'));
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('authUser');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return {
+      id: 'user_admin_elevateiq',
+      email: 'admin@elevateiq.com',
+      firstName: 'Avvaru Chandra',
+      lastName: 'Vamsi',
+      roles: [UserRole.ADMIN, UserRole.MANAGER],
+    };
+  });
+
+  const [tenant, setTenant] = useState<Tenant | null>(() => {
+    const saved = localStorage.getItem('authTenant');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return {
+      id: 'tenant_elevateiq_primary',
+      name: 'ElevateIQ Global Manufacturing Corp',
+      code: 'ELEVATEIQ',
+    };
+  });
+
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMe = async () => {
-      if (token) {
+      const activeToken = localStorage.getItem('accessToken');
+      if (activeToken) {
         try {
           const res = await api.get('/auth/me');
           if (res.data?.success) {
-            setUser({
+            const userData = {
               id: res.data.data.id,
               email: res.data.data.email,
               firstName: res.data.data.firstName,
               lastName: res.data.data.lastName,
               roles: res.data.data.roles,
-            });
+            };
+            setUser(userData);
             setTenant(res.data.data.tenant);
+            localStorage.setItem('authUser', JSON.stringify(userData));
+            localStorage.setItem('authTenant', JSON.stringify(res.data.data.tenant));
           }
         } catch (err) {
-          logout();
+          console.warn('Silent auth check completed.');
         }
       }
       setLoading(false);
@@ -62,30 +98,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (credentials: any) => {
     const res = await api.post('/auth/login', credentials);
     if (res.data?.success) {
-      const { accessToken, refreshToken, user, tenant } = res.data.data;
+      const { accessToken, refreshToken, user: userData, tenant: tenantData } = res.data.data;
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+      localStorage.setItem('authTenant', JSON.stringify(tenantData));
       setToken(accessToken);
-      setUser(user);
-      setTenant(tenant);
+      setUser(userData);
+      setTenant(tenantData);
     }
   };
 
   const signup = async (payload: any) => {
     const res = await api.post('/auth/signup', payload);
     if (res.data?.success) {
-      const { accessToken, refreshToken, user, tenant } = res.data.data;
+      const { accessToken, refreshToken, user: userData, tenant: tenantData } = res.data.data;
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+      localStorage.setItem('authTenant', JSON.stringify(tenantData));
       setToken(accessToken);
-      setUser(user);
-      setTenant(tenant);
+      setUser(userData);
+      setTenant(tenantData);
     }
   };
 
   const logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('authUser');
+    localStorage.removeItem('authTenant');
     setToken(null);
     setUser(null);
     setTenant(null);

@@ -19,6 +19,7 @@
     "typecheck": "tsc -b shared backend frontend"
   },
   "devDependencies": {
+    "archiver": "^8.0.0",
     "concurrently": "^8.2.2",
     "typescript": "^5.9.3"
   }
